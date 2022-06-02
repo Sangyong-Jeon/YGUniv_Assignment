@@ -12,10 +12,10 @@ import java.time.format.DateTimeFormatter;
 @AllArgsConstructor
 public class PostResponse {
 
-    private Long id;
-    private String title;
-    private String createDate;
-    private int viewCount;
+    private Long id; // 글번호
+    private String title; // 제목
+    private String createDate; // 등록일시
+    private int viewCount; // 조회수
 
     public PostResponse(Post post) {
         this.id = post.getId();

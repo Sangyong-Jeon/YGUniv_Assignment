@@ -17,7 +17,7 @@ public class Post extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // 글번호
     private String title; // 제목
-    private String content; // 내용
+    private String content; // 본문
     private int viewCount; // 조회수
     private String password; // 비밀번호
 

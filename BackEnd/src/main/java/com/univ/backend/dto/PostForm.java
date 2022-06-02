@@ -10,9 +10,9 @@ import lombok.*;
 @AllArgsConstructor
 public class PostForm {
 
-    private String title;
-    private String content;
-    private String password;
+    private String title; // 제목
+    private String content; // 본문
+    private String password; // 비밀번호
 
     public Post createAddPostEntity() {
         return Post.builder()
