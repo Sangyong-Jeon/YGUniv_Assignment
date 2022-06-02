@@ -5,6 +5,7 @@ import com.univ.backend.domain.Post;
 import com.univ.backend.dto.PostFormDto;
 import com.univ.backend.dto.response.ResponseData;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
@@ -40,8 +42,8 @@ public class PostApiController {
      */
     @GetMapping("/posts")
     public ResponseEntity<ResponseData<List<Post>>> getPosts(Sort sort) {
-        System.out.println("sort = " + sort);
         ResponseData<List<Post>> responseData = postService.getPosts(sort);
+        log.info("게시글 전체 조회 완료");
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
@@ -66,6 +68,7 @@ public class PostApiController {
         headers.setLocation(new URI("http://localhost:5554")); // 헤더에 location 추가함.
         // MOVED_PERMANENTLY는 HTTP 301로 영구적인 리다이렉션을 하겠다는 의미임.
         // 웹 브라우저는 300번 대 응답의 결가에 Location 헤더가 있으면 Location 위치로 자동 이동(리다이렉트, GET)한다.
+        log.info("게시글 등록 완료");
         return new ResponseEntity<>(responseData, headers, HttpStatus.MOVED_PERMANENTLY);
     }
 
@@ -80,6 +83,7 @@ public class PostApiController {
         ResponseData<String> responseData = postService.updatePost(postId, postFormDto);
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(new URI("http://localhost:5554"));
+        log.info("게시글 수정 완료");
         return new ResponseEntity<>(responseData, headers, HttpStatus.MOVED_PERMANENTLY);
     }
 

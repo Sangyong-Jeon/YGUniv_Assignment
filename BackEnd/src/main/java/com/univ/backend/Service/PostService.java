@@ -52,10 +52,8 @@ public class PostService {
         }
         // 내용이 null 또는 "" 이 아닐 경우 수정
         if (StringUtils.hasLength(postFormDto.getContent())) {
-            System.out.println("본문 수정");
             post.updateContent(postFormDto.getContent());
         }
-        System.out.println("수정완료");
         header = new Header(200, "OK", "수정이 완료되었습니다.");
         return new ResponseData<>(header, "");
     }
