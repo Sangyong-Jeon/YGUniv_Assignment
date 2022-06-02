@@ -1,15 +1,15 @@
 package com.univ.backend.controller;
 
 import com.univ.backend.Service.PostService;
-import com.univ.backend.domain.Post;
-import com.univ.backend.dto.PostFormDto;
+import com.univ.backend.dto.PostDetailResponse;
+import com.univ.backend.dto.PostForm;
+import com.univ.backend.dto.PostResponse;
 import com.univ.backend.dto.response.ResponseData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,8 +41,8 @@ public class PostApiController {
         /posts?sort=viewCount,desc => 조회순으로 내림차순 정렬함 (최신순으로 정렬)
      */
     @GetMapping("/posts")
-    public ResponseEntity<ResponseData<List<Post>>> getPosts(Sort sort) {
-        ResponseData<List<Post>> responseData = postService.getPosts(sort);
+    public ResponseEntity<ResponseData<List<PostResponse>>> getPosts(Sort sort) {
+        ResponseData<List<PostResponse>> responseData = postService.getPosts(sort);
         log.info("게시글 전체 조회 완료");
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
@@ -56,13 +56,19 @@ public class PostApiController {
     게시글 조회
     - 리스트에서 선택한 글 확인
      */
+    @GetMapping("/posts/{postId}")
+    public ResponseEntity<ResponseData<PostDetailResponse>> getPost(@PathVariable("postId") Long postId) {
+        ResponseData<PostDetailResponse> responseData = postService.getPost(postId);
+        log.info("게시글 상세 조회 완료");
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
 
     /*
     게시글 등록
     - 제목, 본문, 비밀번호
      */
     @PostMapping("/posts")
-    public ResponseEntity<ResponseData<String>> addPost(@RequestBody PostFormDto postFormDto) throws URISyntaxException {
+    public ResponseEntity<ResponseData<String>> addPost(@RequestBody PostForm postFormDto) throws URISyntaxException {
         ResponseData<String> responseData = postService.addPost(postFormDto);
         HttpHeaders headers = new HttpHeaders(); // 헤더를 설정하기 위해 생성
         headers.setLocation(new URI("http://localhost:5554")); // 헤더에 location 추가함.
@@ -79,7 +85,7 @@ public class PostApiController {
      */
     @PatchMapping("/posts/{postId}")
     public ResponseEntity<ResponseData<String>> updatePost(@PathVariable("postId") Long postId,
-                                                           @RequestBody PostFormDto postFormDto) throws URISyntaxException {
+                                                           @RequestBody PostForm postFormDto) throws URISyntaxException {
         ResponseData<String> responseData = postService.updatePost(postId, postFormDto);
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(new URI("http://localhost:5554"));

@@ -8,7 +8,7 @@ import lombok.*;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostFormDto {
+public class PostForm {
 
     private String title;
     private String content;
