@@ -1,9 +1,11 @@
 package com.univ.backend.controller;
 
 import com.univ.backend.Service.PostService;
+import com.univ.backend.domain.Post;
 import com.univ.backend.dto.PostFormDto;
 import com.univ.backend.dto.response.ResponseData;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,12 +22,28 @@ import java.net.URISyntaxException;
 public class PostApiController {
 
     private final PostService postService;
+
     /*
     전체 게시글 조회
     - 각 리스트 항목은 글번호, 제목, 등록일시, 조회수
-    - 기본은 최신순 조회. 조회수 많은 순으로 조회 가능해야 함
+    - 기본은 "최신순" 조회. "조회수" 많은 순으로 조회 가능해야 함
     - 페이지 단위 조회는 구현하지 않고 한번에 전체 게시글 정보를 제공
      */
+    /*
+    전체 조회이므로 PagingAndSortingRepository 인터페이스의 findAll(Sort sort) 메서드를 사용하여 정렬함.
+    따라서 Sort 클래스를 사용할 것인데 컨트롤러 파라미터로 받으려면 아래와 같이 적어놓고 url에는 다음과 같이 적는다.
+    ex) /posts?sort=name,asc => name으로 오름차순 정렬함. asc는 기본값이라 안적어도 됨.
+        /posts?sort=name,id => name과 id로 오름차순 정렬
+        /posts?sort=name,asc&sort=id,desc => name으로 오름차순 정렬하고 id로 내림차순 정렬
+    ex) /posts?sort=createdDateTime,desc => 생성일시로 내림차순 정렬함 (최신순으로 정렬)
+        /posts?sort=viewCount,desc => 조회순으로 내림차순 정렬함 (최신순으로 정렬)
+     */
+    @GetMapping("/posts")
+    public ResponseEntity<ResponseData<List<Post>>> getPosts(Sort sort) {
+        System.out.println("sort = " + sort);
+        ResponseData<List<Post>> responseData = postService.getPosts(sort);
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
 
     /*
     게시글 검색
@@ -40,7 +59,7 @@ public class PostApiController {
     게시글 등록
     - 제목, 본문, 비밀번호
      */
-    @PostMapping("/post")
+    @PostMapping("/posts")
     public ResponseEntity<ResponseData<String>> addPost(@RequestBody PostFormDto postFormDto) throws URISyntaxException {
         ResponseData<String> responseData = postService.addPost(postFormDto);
         HttpHeaders headers = new HttpHeaders(); // 헤더를 설정하기 위해 생성
@@ -55,7 +74,7 @@ public class PostApiController {
     - 비밀번호가 맞으면 제목과 본문 수정 가능
     - 게시글이 수정되어도 조회수는 변하지 않음
      */
-    @PatchMapping("/post/{postId}")
+    @PatchMapping("/posts/{postId}")
     public ResponseEntity<ResponseData<String>> updatePost(@PathVariable("postId") Long postId,
                                                            @RequestBody PostFormDto postFormDto) throws URISyntaxException {
         ResponseData<String> responseData = postService.updatePost(postId, postFormDto);
