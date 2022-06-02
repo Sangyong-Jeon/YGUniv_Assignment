@@ -48,11 +48,6 @@ public class PostApiController {
     }
 
     /*
-    게시글 검색
-    - 사용자가 입력한 키워드를 제목에 포함한 게시글 리스트 조회 가능
-     */
-
-    /*
     게시글 조회
     - 리스트에서 선택한 글 확인
      */
@@ -64,6 +59,17 @@ public class PostApiController {
     }
 
     /*
+    게시글 검색
+    - 사용자가 입력한 키워드를 제목에 포함한 게시글 리스트 조회 가능
+     */
+    @GetMapping("/posts/search")
+    public ResponseEntity<ResponseData<List<PostResponse>>> searchPosts(@RequestParam("search") String title) {
+        ResponseData<List<PostResponse>> responseData = postService.searchPosts(title);
+        log.info("게시글 검색 완료");
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
+    /*
     게시글 등록
     - 제목, 본문, 비밀번호
      */
@@ -71,7 +77,7 @@ public class PostApiController {
     public ResponseEntity<ResponseData<String>> addPost(@RequestBody PostForm postFormDto) throws URISyntaxException {
         ResponseData<String> responseData = postService.addPost(postFormDto);
         HttpHeaders headers = new HttpHeaders(); // 헤더를 설정하기 위해 생성
-        headers.setLocation(new URI("http://localhost:5554")); // 헤더에 location 추가함.
+        headers.setLocation(new URI("http://10.0.2.2:8080")); // 헤더에 location 추가함.
         // MOVED_PERMANENTLY는 HTTP 301로 영구적인 리다이렉션을 하겠다는 의미임.
         // 웹 브라우저는 300번 대 응답의 결가에 Location 헤더가 있으면 Location 위치로 자동 이동(리다이렉트, GET)한다.
         log.info("게시글 등록 완료");
@@ -88,7 +94,7 @@ public class PostApiController {
                                                            @RequestBody PostForm postFormDto) throws URISyntaxException {
         ResponseData<String> responseData = postService.updatePost(postId, postFormDto);
         HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(new URI("http://localhost:5554"));
+        headers.setLocation(new URI("http://10.0.2.2:8080"));
         log.info("게시글 수정 완료");
         return new ResponseEntity<>(responseData, headers, HttpStatus.MOVED_PERMANENTLY);
     }
@@ -102,7 +108,7 @@ public class PostApiController {
                                                            @RequestParam("password") String password) throws URISyntaxException {
         ResponseData<String> responseData = postService.deletePost(postId, password);
         HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(new URI("http://localhost:5554"));
+        headers.setLocation(new URI("http://10.0.2.2:8080"));
         log.info("게시글 삭제 완료");
         return new ResponseEntity<>(responseData, headers, HttpStatus.MOVED_PERMANENTLY);
     }

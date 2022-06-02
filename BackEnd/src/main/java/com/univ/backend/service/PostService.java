@@ -73,6 +73,15 @@ public class PostService {
         return new ResponseData<>(header, postDtos);
     }
 
+    // 게시글 검색
+    public ResponseData<List<PostResponse>> searchPosts(String title) {
+        List<Post> posts = postRepository.searchByTitle(title);
+        // Dto 변환
+        List<PostResponse> postDtos = posts.stream().map(PostResponse::new).collect(Collectors.toList());
+        Header header = new Header(200, "OK", "게시글 검색 완료");
+        return new ResponseData<>(header, postDtos);
+    }
+
     // 게시글 상세 조회
     public ResponseData<PostDetailResponse> getPost(Long postId) {
         Header header = new Header(200, "OK", "게시글이 조회되었습니다.");
@@ -110,6 +119,5 @@ public class PostService {
         // 게시글 삭제
         postRepository.delete(post);
         return new ResponseData<>(header, "");
-
     }
 }
