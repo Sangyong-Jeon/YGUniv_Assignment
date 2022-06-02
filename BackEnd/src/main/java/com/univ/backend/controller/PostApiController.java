@@ -1,6 +1,6 @@
 package com.univ.backend.controller;
 
-import com.univ.backend.Service.PostService;
+import com.univ.backend.service.PostService;
 import com.univ.backend.dto.PostDetailResponse;
 import com.univ.backend.dto.PostForm;
 import com.univ.backend.dto.PostResponse;

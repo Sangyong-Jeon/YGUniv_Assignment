@@ -1,4 +1,4 @@
-package com.univ.backend.Service;
+package com.univ.backend.service;
 
 import com.univ.backend.domain.Post;
 import com.univ.backend.dto.PostDetailResponse;
@@ -80,6 +80,8 @@ public class PostService {
             header = new Header(400, "BAD_REQUEST", "게시글이 존재하지 않습니다.");
             return new ResponseData(header, "");
         }
+        // 상세 조회했으므로 조회수 +1
+        post.increaseView();
         // Dto 변환
         PostDetailResponse postDto = new PostDetailResponse(post);
         return new ResponseData<>(header, postDto);
