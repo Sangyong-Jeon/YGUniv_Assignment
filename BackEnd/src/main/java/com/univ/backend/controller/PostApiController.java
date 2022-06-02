@@ -97,5 +97,13 @@ public class PostApiController {
     게시글 삭제
     - 비밀번호가 맞으면 게시글 삭제
      */
-
+    @DeleteMapping("/posts/{postId}")
+    public ResponseEntity<ResponseData<String>> deletePost(@PathVariable("postId") Long postId,
+                                                           @RequestParam("password") String password) throws URISyntaxException {
+        ResponseData<String> responseData = postService.deletePost(postId, password);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(new URI("http://localhost:5554"));
+        log.info("게시글 삭제 완료");
+        return new ResponseEntity<>(responseData, headers, HttpStatus.MOVED_PERMANENTLY);
+    }
 }
