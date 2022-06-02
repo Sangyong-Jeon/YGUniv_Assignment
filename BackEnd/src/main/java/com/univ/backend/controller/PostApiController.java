@@ -43,8 +43,10 @@ public class PostApiController {
     @PostMapping("/post")
     public ResponseEntity<ResponseData<String>> addPost(@RequestBody PostFormDto postFormDto) throws URISyntaxException {
         ResponseData<String> responseData = postService.addPost(postFormDto);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(new URI("http://localhost:5554"));
+        HttpHeaders headers = new HttpHeaders(); // 헤더를 설정하기 위해 생성
+        headers.setLocation(new URI("http://localhost:5554")); // 헤더에 location 추가함.
+        // MOVED_PERMANENTLY는 HTTP 301로 영구적인 리다이렉션을 하겠다는 의미임.
+        // 웹 브라우저는 300번 대 응답의 결가에 Location 헤더가 있으면 Location 위치로 자동 이동(리다이렉트, GET)한다.
         return new ResponseEntity<>(responseData, headers, HttpStatus.MOVED_PERMANENTLY);
     }
 
