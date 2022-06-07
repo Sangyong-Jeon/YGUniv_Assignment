@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:layout_marginStart="4dp"
+    android:layout_marginTop="2dp"
+    android:layout_marginEnd="4dp"
+    android:layout_marginBottom="2dp"
+    android:background="@drawable/item_border"
+    android:orientation="horizontal">
+    <!--
+    RecyclerView의 항목 하나하나를 담당할 Item 뷰이다.
+    이 Item의 테두리를 주기 위해 res-drawable에 "item_border.xml"파일을 만들어서 설정한다.
+    -->
+
+    <TextView
+        android:id="@+id/postsId"
+        android:layout_width="5dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        android:text="글번호"
+        android:textAlignment="center"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/postsTitle"
+        android:layout_width="10dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="4"
+        android:text="제목"
+        android:textAlignment="center"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/postsCreatedDate"
+        android:layout_width="10dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="2"
+        android:text="등록일시"
+        android:textAlignment="center"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/postsViewCount"
+        android:layout_width="5dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        android:text="조회수"
+        android:textAlignment="center"
+        android:textSize="14sp" />
+
+</LinearLayout>
