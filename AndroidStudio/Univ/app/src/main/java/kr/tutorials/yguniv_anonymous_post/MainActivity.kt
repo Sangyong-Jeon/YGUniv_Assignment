@@ -3,10 +3,14 @@ package kr.tutorials.yguniv_anonymous_post
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.Spinner
 import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.textfield.TextInputEditText
 import kr.tutorials.yguniv_anonymous_post.rest.PostAPI
 import kr.tutorials.yguniv_anonymous_post.rest.ResultGetPosts
 import retrofit2.Call
@@ -14,61 +18,99 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Tag
 
 class MainActivity : AppCompatActivity() {
 
-//    var postList = arrayListOf<Post>(
-//        Post("1", "제목1", "2022-01-01 13:13", 1),
-//        Post("2", "제목2", "2022-01-01 13:13", 1),
-//        Post("3", "제목3", "2022-01-01 13:13", 1),
-//        Post("4", "제목4", "2022-01-01 13:13", 1),
-//        Post("5", "제목5", "2022-01-01 13:13", 1),
-//        Post("6", "제목6", "2022-01-01 13:13", 1),
-//        Post("7", "제목7", "2022-01-01 13:13", 1),
-//        Post("8", "제목8", "2022-01-01 13:13", 1),
-//        Post("9", "제목9", "2022-01-01 13:13", 1),
-//        Post("10", "제목10", "2022-01-01 13:13", 1),
-//    )
-
+    // layout 요소
+    private var spinner: Spinner? = null
     private var mRecyclerView: RecyclerView? = null
-    private var url: String = "http://10.0.2.2:8080"
-    private var posts = MutableLiveData<ResultGetPosts>()
+    private var btnTitleSearch: Button? = null
+    private var btnOrderBySearch: Button? = null
 
-    // API 요청 관련
-    val retrofit = Retrofit.Builder()
+    // api 요소
+    private var url: String = "http://10.0.2.2:8080"
+    private val retrofit = Retrofit.Builder()
         .baseUrl(url)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
-    val api = retrofit.create(PostAPI::class.java)
+    private val api = retrofit.create(PostAPI::class.java)
 
+    // 전체 게시판 값
+    private var posts = MutableLiveData<ResultGetPosts>()
 
+    // 첫시작
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        // 게시글 전체 조회 (최신순)
+        getPosts("최신순")
 
-        // api 관련
-        api.getPosts("createdDateTime,desc").enqueue(object : Callback<ResultGetPosts> {
+        // spinner
+        spinner = findViewById(R.id.spinner)
+        spinner?.adapter = ArrayAdapter.createFromResource(
+            this,
+            R.array.spinner_array,
+            android.R.layout.simple_spinner_item
+        )
+
+        // 제목 검색 버튼
+        val textTitle = findViewById<TextInputEditText>(R.id.textInputTitle)
+        btnTitleSearch = findViewById(R.id.btnTitleSearch)
+        btnTitleSearch?.setOnClickListener {
+            getTitlePosts(textTitle.text.toString())
+            Toast.makeText(this, "${textTitle.text} 조회", Toast.LENGTH_SHORT)
+                .show()
+        }
+
+        // 정렬 검색 버튼
+        btnOrderBySearch = findViewById(R.id.btnOrderBySearch)
+        btnOrderBySearch?.setOnClickListener {
+            getPosts(spinner?.selectedItem.toString())
+            Toast.makeText(this, "${spinner?.selectedItem.toString()} 정렬 조회", Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
+
+    private fun getTitlePosts(title: String) {
+        api.getTitlePost(title).enqueue(object : Callback<ResultGetPosts> {
             override fun onResponse(
                 call: Call<ResultGetPosts>,
                 response: Response<ResultGetPosts>
             ) {
-                println("====================================")
                 posts.value = response.body()
-                println(posts.value?.body)
                 Log.d("RESPONSE", "성공 : ${response.raw()}")
-                addPosts()
+                showPosts()
             }
 
             override fun onFailure(call: Call<ResultGetPosts>, t: Throwable) {
                 Log.d("RESPONSE", "실패 : $t")
             }
         })
-
-
     }
 
-    fun addPosts() {
+    private fun getPosts(orderBy: String) {
+        val queryString: String = when (orderBy) {
+            "최신순" -> "createdDateTime,desc"
+            else -> "viewCount,desc"
+        }
+
+        api.getPosts(queryString).enqueue(object : Callback<ResultGetPosts> {
+            override fun onResponse(
+                call: Call<ResultGetPosts>,
+                response: Response<ResultGetPosts>
+            ) {
+                posts.value = response.body()
+                Log.d("RESPONSE", "성공 : ${response.raw()}")
+                showPosts()
+            }
+
+            override fun onFailure(call: Call<ResultGetPosts>, t: Throwable) {
+                Log.d("RESPONSE", "실패 : $t")
+            }
+        })
+    }
+
+    private fun showPosts() {
         // 람다식 { (Dog) -> Unit } 부분을 추가하여 itemView의 setOnClickListener에서 어떤 액션을 취할지 설정해준다.
         val mAdapter = MainRvAdapter(this, posts.value?.body) { post ->
             Toast.makeText(
