@@ -21,13 +21,17 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity() {
 
-    // layout 요소
+    // 홈화면 layout 요소
     private var spinner: Spinner? = null
     private var mRecyclerView: RecyclerView? = null
     private var btnTitleSearch: Button? = null
     private var btnOrderBySearch: Button? = null
     private var btnAdmin: Button? = null
+    private var btnPostAdd: Button? = null
     private var textTitle: TextInputEditText? = null
+
+    // 게시글 등록 layout 요소
+    private var postAddBtnPrev: Button? = null
 
     // api 요소
     private var url: String = "http://10.0.2.2:8080"
@@ -43,9 +47,19 @@ class MainActivity : AppCompatActivity() {
     // 첫시작
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        changeViewHome();
+    }
+
+    // === 홈화면 페이지 === //
+    private fun changeViewHome() {
         setContentView(R.layout.activity_main)
-        // 게시글 전체 조회 (최신순)
         getPosts("최신순")
+
+        // 게시글 등록 페이지 전환
+        btnPostAdd = findViewById(R.id.btnPostAdd)
+        btnPostAdd?.setOnClickListener {
+            changeViewPostAdd()
+        }
 
         // 홈화면 정렬 선택지
         spinner = findViewById(R.id.spinner)
@@ -64,7 +78,6 @@ class MainActivity : AppCompatActivity() {
             modalUpdateServerUrl(editText)
         }
 
-
         // 제목 검색 버튼
         textTitle = findViewById(R.id.textInputTitle)
         btnTitleSearch = findViewById(R.id.btnTitleSearch)
@@ -77,7 +90,19 @@ class MainActivity : AppCompatActivity() {
         btnOrderBySearch = findViewById(R.id.btnOrderBySearch)
         btnOrderBySearch?.setOnClickListener {
             getPosts(spinner?.selectedItem.toString())
-            Toast.makeText(this, "${spinner?.selectedItem.toString()} 정렬 전체 조회", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "${spinner?.selectedItem.toString()} 정렬 전체 조회", Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
+
+    // === 게시글 등록 페이지 === //
+    private fun changeViewPostAdd() {
+        setContentView(R.layout.activity_post_add)
+
+        // 이전 페이지 전환 (홈화면으로)
+        postAddBtnPrev = findViewById(R.id.postAdd_btnPrev)
+        postAddBtnPrev?.setOnClickListener {
+            changeViewHome()
         }
     }
 
