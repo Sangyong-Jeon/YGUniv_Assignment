@@ -339,11 +339,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     // 게시글 상세 조회 페이지 갱신
     private fun showPost() {
         var postBody = post.value?.body
-        postTvTitle?.text = postBody?.title
-        postTvContent?.text = postBody?.content
-        postTvViewCount?.text = postBody?.viewCount.toString()
-        postTvCreatedDate?.text = postBody?.createDate
-        postTvUpdatedDate?.text = postBody?.updateDate
+        activitiPost.postTvTitle.text = postBody?.title
+        activitiPost.postTvContent.text = postBody?.content
+        activitiPost.postTvViewCount.text = postBody?.viewCount.toString()
+        activitiPost.postTvCreatedDate.text = postBody?.createDate
+        activitiPost.postTvUpdatedDate.text = postBody?.updateDate
     }
 
     // 게시글 전체 조회 (정렬순)
