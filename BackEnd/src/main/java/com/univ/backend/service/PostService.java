@@ -84,7 +84,6 @@ public class PostService {
     }
 
     // 게시글 상세 조회
-    @Transactional(readOnly = true)
     public ResponseData<PostDetailResponse> getPost(Long postId) {
         Header header = new Header(200, "OK", "게시글이 조회되었습니다.");
         Optional<Post> findPost = postRepository.findById(postId);
