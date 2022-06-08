@@ -12,7 +12,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
 import kr.tutorials.yguniv_anonymous_post.rest.PostAPI
-import kr.tutorials.yguniv_anonymous_post.rest.ResultGetPosts
+import kr.tutorials.yguniv_anonymous_post.rest.PostForm
+import kr.tutorials.yguniv_anonymous_post.rest.PostsBody
+import kr.tutorials.yguniv_anonymous_post.rest.ResponseData
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -20,6 +22,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity() {
+
 
     // 홈화면 layout 요소
     private var spinner: Spinner? = null
@@ -30,8 +33,12 @@ class MainActivity : AppCompatActivity() {
     private var btnPostAdd: Button? = null
     private var textTitle: TextInputEditText? = null
 
-    // 게시글 등록 layout 요소
+    // 게시글 등록 페이지 layout 요소
     private var postAddBtnPrev: Button? = null
+    private var postAddInputTitle: TextInputEditText? = null
+    private var postAddInputContent: TextInputEditText? = null
+    private var postAddInputPassword: EditText? = null
+    private var postAddBtnPostAdd: Button? = null
 
     // api 요소
     private var url: String = "http://10.0.2.2:8080"
@@ -42,7 +49,7 @@ class MainActivity : AppCompatActivity() {
     private var api = retrofit.create(PostAPI::class.java)
 
     // 게시글 리스트 값
-    private var posts = MutableLiveData<ResultGetPosts>()
+    private var posts = MutableLiveData<ResponseData<ArrayList<PostsBody>>>()
 
     // 첫시작
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -104,6 +111,29 @@ class MainActivity : AppCompatActivity() {
         postAddBtnPrev?.setOnClickListener {
             changeViewHome()
         }
+
+        // 게시글 등록
+        postAddInputTitle = findViewById(R.id.postAdd_inputTitle)
+        postAddInputContent = findViewById(R.id.postAdd_inputContent)
+        postAddInputPassword = findViewById(R.id.postAdd_inputPassword)
+        postAddBtnPostAdd = findViewById(R.id.postAdd_btnPostAdd)
+        postAddBtnPostAdd?.setOnClickListener {
+            val title = postAddInputTitle?.text.toString()
+            val content = postAddInputContent?.text.toString()
+            val password = postAddInputPassword?.text.toString()
+
+            if (validatePostAdd(title, content, password)) {
+                addPost(title, content, password)
+                Toast.makeText(this, "게시글 등록 완료", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "제목, 내용, 비밀번호를 입력하지 않았습니다.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun validatePostAdd(title: String, content: String, password: String): Boolean {
+        if (title.isBlank() || content.isBlank() || password.isBlank()) return false
+        return true
     }
 
     // 대화상자를 열어서 서버 URL 변경
@@ -144,17 +174,17 @@ class MainActivity : AppCompatActivity() {
 
     // 게시글 제목 검색
     private fun getTitlePosts(title: String) {
-        api.getTitlePost(title).enqueue(object : Callback<ResultGetPosts> {
+        api.getTitlePost(title).enqueue(object : Callback<ResponseData<ArrayList<PostsBody>>> {
             override fun onResponse(
-                call: Call<ResultGetPosts>,
-                response: Response<ResultGetPosts>
+                call: Call<ResponseData<ArrayList<PostsBody>>>,
+                response: Response<ResponseData<ArrayList<PostsBody>>>
             ) {
                 posts.value = response.body()
                 Log.d("RESPONSE", "성공 : ${response.raw()}")
                 showPosts()
             }
 
-            override fun onFailure(call: Call<ResultGetPosts>, t: Throwable) {
+            override fun onFailure(call: Call<ResponseData<ArrayList<PostsBody>>>, t: Throwable) {
                 Log.e("RESPONSE", "실패 : $t")
             }
         })
@@ -167,17 +197,17 @@ class MainActivity : AppCompatActivity() {
             else -> "viewCount,desc"
         }
 
-        api.getPosts(queryString).enqueue(object : Callback<ResultGetPosts> {
+        api.getPosts(queryString).enqueue(object : Callback<ResponseData<ArrayList<PostsBody>>> {
             override fun onResponse(
-                call: Call<ResultGetPosts>,
-                response: Response<ResultGetPosts>
+                call: Call<ResponseData<ArrayList<PostsBody>>>,
+                response: Response<ResponseData<ArrayList<PostsBody>>>
             ) {
                 posts.value = response.body()
                 Log.d("RESPONSE", "성공 : ${response.raw()}")
                 showPosts()
             }
 
-            override fun onFailure(call: Call<ResultGetPosts>, t: Throwable) {
+            override fun onFailure(call: Call<ResponseData<ArrayList<PostsBody>>>, t: Throwable) {
                 Log.e("RESPONSE", "실패 : $t")
             }
         })
@@ -201,5 +231,23 @@ class MainActivity : AppCompatActivity() {
         val lm = LinearLayoutManager(this)
         mRecyclerView?.layoutManager = lm
         mRecyclerView?.setHasFixedSize(true)
+    }
+
+    // 게시글 등록
+    private fun addPost(title: String, content: String, password: String) {
+        val postForm: PostForm = PostForm(title, content, password)
+        api.addPost(postForm).enqueue(object : Callback<ResponseData<String>> {
+            override fun onResponse(
+                call: Call<ResponseData<String>>,
+                response: Response<ResponseData<String>>
+            ) {
+                if (response.code() == 200) changeViewHome()
+                Log.i("RESPONSE", "성공 : ${response.raw()}")
+            }
+
+            override fun onFailure(call: Call<ResponseData<String>>, t: Throwable) {
+                Log.e("RESPONSE", "실패 : $t")
+            }
+        })
     }
 }

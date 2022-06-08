@@ -1,22 +1,23 @@
 package kr.tutorials.yguniv_anonymous_post.rest
 
 import retrofit2.Call
-import retrofit2.http.GET
-import retrofit2.http.Path
-import retrofit2.http.Query
+import retrofit2.http.*
 
 interface PostAPI {
+
     // 전체조회 (정렬순)
     @GET("/api/posts")
-    fun getPosts(
-        @Query("sort") sort: String
-    ): Call<ResultGetPosts>
+    fun getPosts(@Query("sort") sort: String): Call<ResponseData<ArrayList<PostsBody>>>
 
     // 게시글 상세 조회
     @GET("/api/posts/{postId}")
-    fun getPost(@Path("postId") postId: Int): Call<ResultGetPost>
+    fun getPost(@Path("postId") postId: Int): Call<ResponseData<ArrayList<PostBody>>>
 
     // 게시글 검색
     @GET("/api/posts/search")
-    fun getTitlePost(@Query("search") search: String): Call<ResultGetPosts>
+    fun getTitlePost(@Query("search") search: String): Call<ResponseData<ArrayList<PostsBody>>>
+
+    // 게시글 등록
+    @POST("/api/posts")
+    fun addPost(@Body postFormDto: PostForm): Call<ResponseData<String>>
 }

@@ -88,7 +88,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.05"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/postAdd_inputContent"
+            app:layout_constraintTop_toBottomOf="@+id/postAdd_inputContentLayout"
             app:layout_constraintVertical_bias="0.19999999" />
 
         <TextView
@@ -104,7 +104,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/postAdd_inputContent"
+            android:id="@+id/postAdd_inputContentLayout"
             android:layout_width="350dp"
             android:layout_height="350dp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -114,6 +114,7 @@
             app:layout_constraintVertical_bias="0.0">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/postAdd_inputContent"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:hint="내용을 입력해주세요" />
@@ -126,7 +127,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/textView6"
-            app:layout_constraintTop_toBottomOf="@+id/postAdd_inputContent"
+            app:layout_constraintTop_toBottomOf="@+id/postAdd_inputContentLayout"
             app:layout_constraintVertical_bias="0.100000024">
 
             <EditText
@@ -143,12 +144,12 @@
             android:layout_height="wrap_content"
             android:text="이전"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/postAdd_btnAdd"
+            app:layout_constraintEnd_toStartOf="@+id/postAdd_btnPostAdd"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textInputLayout3" />
 
         <Button
-            android:id="@+id/postAdd_btnAdd"
+            android:id="@+id/postAdd_btnPostAdd"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="등록"
