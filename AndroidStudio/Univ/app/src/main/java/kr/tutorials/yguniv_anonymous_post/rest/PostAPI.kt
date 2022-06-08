@@ -20,4 +20,11 @@ interface PostAPI {
     // 게시글 등록
     @POST("/api/posts")
     fun addPost(@Body postFormDto: PostForm): Call<ResponseData<String>>
+
+    // 게시글 수정
+    @PATCH("/api/posts/{postId}")
+    fun updatePost(
+        @Path("postId") postId: Long,
+        @Body postFormDto: PostForm
+    ): Call<ResponseData<String>>
 }

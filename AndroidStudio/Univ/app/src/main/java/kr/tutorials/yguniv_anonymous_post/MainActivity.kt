@@ -20,13 +20,13 @@ import retrofit2.converter.gson.GsonConverterFactory
 class MainActivity : AppCompatActivity() {
 
     // 홈화면 layout 요소
-    private var spinner: Spinner? = null
-    private var mRecyclerView: RecyclerView? = null
-    private var btnTitleSearch: Button? = null
-    private var btnOrderBySearch: Button? = null
-    private var btnAdmin: Button? = null
-    private var btnPostAdd: Button? = null
-    private var textTitle: TextInputEditText? = null
+    private var homeSpinner: Spinner? = null
+    private var homeMRecyclerView: RecyclerView? = null
+    private var homeBtnTitleSearch: Button? = null
+    private var homeBtnOrderBySearch: Button? = null
+    private var homeBtnAdmin: Button? = null
+    private var homeBtnPostAdd: Button? = null
+    private var homeTextInputTitle: TextInputEditText? = null
 
     // 게시글 등록 페이지 layout 요소
     private var postAddBtnPrev: Button? = null
@@ -42,6 +42,14 @@ class MainActivity : AppCompatActivity() {
     private var postTvCreatedDate: TextView? = null
     private var postTvUpdatedDate: TextView? = null
     private var postBtnPrev: Button? = null
+    private var postBtnUpdatePost: Button? = null
+
+    // 게시글 수정 페이지 layout 요소
+    private var postUpdateInputTitle: TextInputEditText? = null
+    private var postUpdateInputContent: TextInputEditText? = null
+    private var postUpdateInputPassword: EditText? = null
+    private var postUpdateBtnPrev: Button? = null
+    private var postUpdateBtnUpdatePost: Button? = null
 
     // api 요소
     private var url: String = "http://10.0.2.2:8080"
@@ -60,7 +68,7 @@ class MainActivity : AppCompatActivity() {
     // 첫시작
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        changeViewHome();
+        changeViewHome()
     }
 
     // === 홈화면 페이지 === //
@@ -69,22 +77,22 @@ class MainActivity : AppCompatActivity() {
         getPosts("최신순")
 
         // 게시글 등록 페이지 전환
-        btnPostAdd = findViewById(R.id.btnPostAdd)
-        btnPostAdd?.setOnClickListener {
+        homeBtnPostAdd = findViewById(R.id.home_btnPostAdd)
+        homeBtnPostAdd?.setOnClickListener {
             changeViewPostAdd()
         }
 
         // 홈화면 정렬 선택지
-        spinner = findViewById(R.id.spinner)
-        spinner?.adapter = ArrayAdapter.createFromResource(
+        homeSpinner = findViewById(R.id.home_spinner)
+        homeSpinner?.adapter = ArrayAdapter.createFromResource(
             this,
             R.array.spinner_array,
             android.R.layout.simple_spinner_item
         )
 
         // 서버 url 설정 버튼
-        btnAdmin = findViewById(R.id.btnAdmin)
-        btnAdmin?.setOnClickListener {
+        homeBtnAdmin = findViewById(R.id.home_btnAdmin)
+        homeBtnAdmin?.setOnClickListener {
             val editText = EditText(this)
             editText.gravity = Gravity.CENTER
             editText.hint = "서버 API 주소 입력"
@@ -92,18 +100,22 @@ class MainActivity : AppCompatActivity() {
         }
 
         // 제목 검색 버튼
-        textTitle = findViewById(R.id.textInputTitle)
-        btnTitleSearch = findViewById(R.id.btnTitleSearch)
-        btnTitleSearch?.setOnClickListener {
-            getTitlePosts(textTitle?.text.toString())
-            Toast.makeText(this, "${textTitle?.text} 조회", Toast.LENGTH_SHORT).show()
+        homeTextInputTitle = findViewById(R.id.home_textInputTitle)
+        homeBtnTitleSearch = findViewById(R.id.home_btnTitleSearch)
+        homeBtnTitleSearch?.setOnClickListener {
+            getTitlePosts(homeTextInputTitle?.text.toString())
+            Toast.makeText(this, "${homeTextInputTitle?.text} 조회", Toast.LENGTH_SHORT).show()
         }
 
         // 정렬 검색 버튼
-        btnOrderBySearch = findViewById(R.id.btnOrderBySearch)
-        btnOrderBySearch?.setOnClickListener {
-            getPosts(spinner?.selectedItem.toString())
-            Toast.makeText(this, "${spinner?.selectedItem.toString()} 정렬 전체 조회", Toast.LENGTH_SHORT)
+        homeBtnOrderBySearch = findViewById(R.id.home_btnOrderBySearch)
+        homeBtnOrderBySearch?.setOnClickListener {
+            getPosts(homeSpinner?.selectedItem.toString())
+            Toast.makeText(
+                this,
+                "${homeSpinner?.selectedItem.toString()} 정렬 전체 조회",
+                Toast.LENGTH_SHORT
+            )
                 .show()
         }
     }
@@ -146,13 +158,76 @@ class MainActivity : AppCompatActivity() {
         postTvCreatedDate = findViewById(R.id.post_tvCreatedDate)
         postTvUpdatedDate = findViewById(R.id.post_tvUpdatedDate)
         postBtnPrev = findViewById(R.id.post_btnPrev)
+        postBtnUpdatePost = findViewById(R.id.post_btnUpdatePost)
 
         postBtnPrev?.setOnClickListener {
             changeViewHome()
         }
 
+        postBtnUpdatePost?.setOnClickListener {
+            changeViewPostUpdate()
+        }
         getPost(id)
+    }
 
+    // === 게시글 수정 페이지 === //
+    private fun changeViewPostUpdate() {
+        setContentView(R.layout.activity_post_update)
+        postUpdateInputTitle = findViewById(R.id.postUpdate_inputTitle)
+        postUpdateInputContent = findViewById(R.id.postUpdate_inputContent)
+        postUpdateInputPassword = findViewById(R.id.postUpdate_inputPassword)
+        postUpdateBtnPrev = findViewById(R.id.postUpdate_btnPrev)
+        postUpdateBtnUpdatePost = findViewById(R.id.postUpdate_btnUpdatePost)
+
+        var postBody = post.value?.body
+        var title = postBody?.title.toString()
+        var content = postBody?.content.toString()
+        var password: String
+
+        postUpdateInputTitle?.setText(title)
+        postUpdateInputContent?.setText(content)
+
+        postUpdateBtnPrev?.setOnClickListener {
+            changeViewPostDetail(0L)
+        }
+
+        postUpdateBtnUpdatePost?.setOnClickListener {
+            title = postUpdateInputTitle?.text.toString()
+            content = postUpdateInputContent?.text.toString()
+            password = postUpdateInputPassword?.text.toString()
+            postBody?.let { updatePost(postBody.id, title, content, password) }
+        }
+    }
+
+    // 게시글 수정
+    private fun updatePost(id: Long, title: String, content: String, password: String) {
+        val postForm = PostForm(title, content, password)
+
+        api.updatePost(id, postForm).enqueue(object : Callback<ResponseData<String>> {
+            override fun onResponse(
+                call: Call<ResponseData<String>>,
+                response: Response<ResponseData<String>>
+            ) {
+
+
+                when (response.code()) {
+                    200 -> {
+                        changeViewHome()
+                        Log.i("updatePost", "게시글 수정 성공 : ${response.raw()}")
+                        Toast.makeText(this@MainActivity, "게시글 수정 완료", Toast.LENGTH_SHORT).show()
+                    }
+                    else -> {
+                        var errorMessage = response.errorBody()?.string()!!.substring(56, 67)
+                        Toast.makeText(this@MainActivity, errorMessage, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseData<String>>, t: Throwable) {
+                Log.e("RESPONSE", "게시글 수정 실패 : $t")
+            }
+
+        })
     }
 
     // 공백 또는 화이트스페이스에 해당하는지 검증
@@ -219,21 +294,25 @@ class MainActivity : AppCompatActivity() {
 
     // 게시글 상세 조회
     private fun getPost(id: Long) {
-        api.getPost(id).enqueue(object : Callback<ResponseData<PostBody>> {
-            override fun onResponse(
-                call: Call<ResponseData<PostBody>>,
-                response: Response<ResponseData<PostBody>>
-            ) {
-                post.value = response.body()
-                showPost()
-                Log.i("RESPONSE", "게시글 상세 조회 성공 : ${response.raw()}")
-            }
+        if (id != 0L) {
+            api.getPost(id).enqueue(object : Callback<ResponseData<PostBody>> {
+                override fun onResponse(
+                    call: Call<ResponseData<PostBody>>,
+                    response: Response<ResponseData<PostBody>>
+                ) {
+                    post.value = response.body()
+                    showPost()
+                    Log.i("RESPONSE", "게시글 상세 조회 성공 : ${response.raw()}")
+                }
 
-            override fun onFailure(call: Call<ResponseData<PostBody>>, t: Throwable) {
-                Log.e("RESPONSE", "게시글 상세 조회 실패 : $t")
-            }
+                override fun onFailure(call: Call<ResponseData<PostBody>>, t: Throwable) {
+                    Log.e("RESPONSE", "게시글 상세 조회 실패 : $t")
+                }
 
-        })
+            })
+        } else {
+            showPost()
+        }
     }
 
     // 게시글 상세 조회 페이지 갱신
@@ -274,20 +353,15 @@ class MainActivity : AppCompatActivity() {
         // 람다식 { (Dog) -> Unit } 부분을 추가하여 itemView의 setOnClickListener에서 어떤 액션을 취할지 설정해준다.
         val mAdapter = MainRvAdapter(this, posts.value?.body) { post ->
             changeViewPostDetail(post.id)
-            Toast.makeText(
-                this,
-                "${post.id}번 | ${post.title} | ${post.createDate} | ${post.viewCount}",
-                Toast.LENGTH_SHORT
-            ).show()
         }
 
-        mRecyclerView = findViewById(R.id.mRecyclerView)
-        mRecyclerView?.adapter = mAdapter
+        homeMRecyclerView = findViewById(R.id.home_mRecyclerView)
+        homeMRecyclerView?.adapter = mAdapter
 
         // RecyclerView의 각 item들을 배치하고, item이 더이상 보이지 않을때 재사용할것인지 결정하는 역할을 한다.
         val lm = LinearLayoutManager(this)
-        mRecyclerView?.layoutManager = lm
-        mRecyclerView?.setHasFixedSize(true)
+        homeMRecyclerView?.layoutManager = lm
+        homeMRecyclerView?.setHasFixedSize(true)
     }
 
     // 게시글 등록

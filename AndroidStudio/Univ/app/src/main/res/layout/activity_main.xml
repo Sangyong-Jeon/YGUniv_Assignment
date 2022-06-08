@@ -26,14 +26,14 @@
             android:textSize="35sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/btnAdmin"
+            app:layout_constraintEnd_toStartOf="@+id/home_btnAdmin"
             app:layout_constraintHorizontal_bias="0.06"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.0" />
 
         <Button
-            android:id="@+id/btnAdmin"
+            android:id="@+id/home_btnAdmin"
             android:layout_width="85dp"
             android:layout_height="48dp"
             android:text="서버 설정"
@@ -50,14 +50,14 @@
             android:id="@+id/inputTitleLayout"
             android:layout_width="240dp"
             android:layout_height="wrap_content"
-            app:layout_constraintBottom_toTopOf="@+id/spinner"
-            app:layout_constraintEnd_toStartOf="@+id/btnTitleSearch"
+            app:layout_constraintBottom_toTopOf="@+id/home_spinner"
+            app:layout_constraintEnd_toStartOf="@+id/home_btnTitleSearch"
             app:layout_constraintHorizontal_bias="0.33"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView2">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/textInputTitle"
+                android:id="@+id/home_textInputTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="제목 검색" />
@@ -66,7 +66,7 @@
 
 
         <Button
-            android:id="@+id/btnOrderBySearch"
+            android:id="@+id/home_btnOrderBySearch"
             android:layout_width="90dp"
             android:layout_height="48dp"
             android:text="@string/btn_orderby_search"
@@ -74,23 +74,23 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.12"
-            app:layout_constraintStart_toEndOf="@+id/spinner"
+            app:layout_constraintStart_toEndOf="@+id/home_spinner"
             app:layout_constraintTop_toBottomOf="@+id/inputTitleLayout" />
 
         <Button
-            android:id="@+id/btnTitleSearch"
+            android:id="@+id/home_btnTitleSearch"
             android:layout_width="60dp"
             android:layout_height="48dp"
             android:text="@string/btn_search"
             android:textSize="12sp"
-            app:layout_constraintBottom_toTopOf="@+id/btnOrderBySearch"
+            app:layout_constraintBottom_toTopOf="@+id/home_btnOrderBySearch"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.93"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnAdmin" />
+            app:layout_constraintTop_toBottomOf="@+id/home_btnAdmin" />
 
         <Spinner
-            android:id="@+id/spinner"
+            android:id="@+id/home_spinner"
             android:layout_width="120dp"
             android:layout_height="50dp"
             android:spinnerMode="dropdown"
@@ -102,14 +102,14 @@
             app:layout_constraintVertical_bias="0.9" />
 
         <Button
-            android:id="@+id/btnPostAdd"
+            android:id="@+id/home_btnPostAdd"
             android:layout_width="60dp"
             android:layout_height="48dp"
             android:text="등록"
             android:textSize="12dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/btnOrderBySearch"
+            app:layout_constraintStart_toEndOf="@+id/home_btnOrderBySearch"
             app:layout_constraintTop_toBottomOf="@+id/inputTitleLayout" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -190,7 +190,7 @@
             app:layout_constraintTop_toBottomOf="@+id/linearLayout_PostsTitle">
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/mRecyclerView"
+                android:id="@+id/home_mRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 app:layout_constraintBottom_toBottomOf="parent"

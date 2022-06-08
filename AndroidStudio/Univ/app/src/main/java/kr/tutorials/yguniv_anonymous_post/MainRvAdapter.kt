@@ -36,10 +36,10 @@ class MainRvAdapter(
     // 2. Holder에서 클릭에 대한 처리를 할 것이므로 Holder의 파라미터에 람다식 itemClick을 넣는다.
     inner class Holder(itemView: View?, itemClick: (PostsBody) -> Unit) :
         RecyclerView.ViewHolder(itemView!!) {
-        val postsId = itemView?.findViewById<TextView>(R.id.postsId)
-        val postsTitle = itemView?.findViewById<TextView>(R.id.postsTitle)
-        val postsCreatedDate = itemView?.findViewById<TextView>(R.id.postsCreatedDate)
-        val postsViewCount = itemView?.findViewById<TextView>(R.id.postsViewCount)
+        val postsId = itemView?.findViewById<TextView>(R.id.home_postsId)
+        val postsTitle = itemView?.findViewById<TextView>(R.id.home_postsTitle)
+        val postsCreatedDate = itemView?.findViewById<TextView>(R.id.home_postsCreatedDate)
+        val postsViewCount = itemView?.findViewById<TextView>(R.id.home_postsViewCount)
 
         fun bind(post: PostsBody, context: Context) {
             /* 나머지 TextView와 String 데이터를 연결한다. */

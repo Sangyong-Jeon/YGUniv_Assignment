@@ -5,6 +5,7 @@ import com.univ.backend.dto.PostDetailResponse;
 import com.univ.backend.dto.PostForm;
 import com.univ.backend.dto.PostResponse;
 import com.univ.backend.dto.response.ResponseData;
+import com.univ.backend.util.ResponseUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
@@ -24,6 +25,7 @@ import java.util.List;
 public class PostApiController {
 
     private final PostService postService;
+    private final ResponseUtils responseUtils;
 
     /*
     전체 게시글 조회
@@ -52,10 +54,10 @@ public class PostApiController {
     - 리스트에서 선택한 글 확인
      */
     @GetMapping("/posts/{postId}")
-    public ResponseEntity<ResponseData<PostDetailResponse>> getPost(@PathVariable("postId") Long postId) {
+    public ResponseEntity<ResponseData<?>> getPost(@PathVariable("postId") Long postId) {
         ResponseData<PostDetailResponse> responseData = postService.getPost(postId);
         log.info("게시글 상세 조회 완료");
-        return new ResponseEntity<>(responseData, HttpStatus.OK);
+        return responseUtils.createResponseEntity(responseData);
     }
 
     /*
@@ -86,11 +88,11 @@ public class PostApiController {
     - 게시글이 수정되어도 조회수는 변하지 않음
      */
     @PatchMapping("/posts/{postId}")
-    public ResponseEntity<ResponseData<String>> updatePost(@PathVariable("postId") Long postId,
-                                                           @RequestBody PostForm postFormDto) throws URISyntaxException {
+    public ResponseEntity<ResponseData<?>> updatePost(@PathVariable("postId") Long postId,
+                                                      @RequestBody PostForm postFormDto) throws URISyntaxException {
         ResponseData<String> responseData = postService.updatePost(postId, postFormDto);
         log.info("게시글 수정 완료");
-        return new ResponseEntity<>(responseData, HttpStatus.OK);
+        return responseUtils.createResponseEntity(responseData);
     }
 
     /*
@@ -98,10 +100,10 @@ public class PostApiController {
     - 비밀번호가 맞으면 게시글 삭제
      */
     @DeleteMapping("/posts/{postId}")
-    public ResponseEntity<ResponseData<String>> deletePost(@PathVariable("postId") Long postId,
-                                                           @RequestParam("password") String password) throws URISyntaxException {
+    public ResponseEntity<ResponseData<?>> deletePost(@PathVariable("postId") Long postId,
+                                                      @RequestParam("password") String password) throws URISyntaxException {
         ResponseData<String> responseData = postService.deletePost(postId, password);
         log.info("게시글 삭제 완료");
-        return new ResponseEntity<>(responseData, HttpStatus.OK);
+        return responseUtils.createResponseEntity(responseData);
     }
 }

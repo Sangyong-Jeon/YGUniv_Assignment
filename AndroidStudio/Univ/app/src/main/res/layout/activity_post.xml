@@ -127,7 +127,7 @@
             android:id="@+id/post_btnDeletePost"
             android:layout_width="60dp"
             android:layout_height="40dp"
-            android:text="등록"
+            android:text="삭제"
             android:textSize="12sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
