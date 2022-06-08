@@ -4,20 +4,23 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
+import kr.tutorials.yguniv_anonymous_post.databinding.ActivityMainBinding
 import kr.tutorials.yguniv_anonymous_post.rest.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.lang.NumberFormatException
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     // 홈화면 layout 요소
     private var homeSpinner: Spinner? = null
@@ -66,6 +69,11 @@ class MainActivity : AppCompatActivity() {
     // 게시글 값
     private var post = MutableLiveData<ResponseData<PostBody>>()
 
+    // layout 파일에 해당하는 객체 생성
+    private val activitiMain by lazy {
+        ActivityMainBinding.inflate(layoutInflater)
+    }
+
     // 첫시작
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,50 +82,46 @@ class MainActivity : AppCompatActivity() {
 
     // === 홈화면 페이지 === //
     private fun changeViewHome() {
-        setContentView(R.layout.activity_main)
+        setContentView(activitiMain.root)
         getPosts("최신순")
 
         // 게시글 등록 페이지 전환
-        homeBtnPostAdd = findViewById(R.id.home_btnPostAdd)
-        homeBtnPostAdd?.setOnClickListener {
-            changeViewPostAdd()
-        }
+        activitiMain.homeBtnPostAdd.setOnClickListener(this)
+
+        // 제목 검색 버튼
+        activitiMain.homeBtnTitleSearch.setOnClickListener(this)
+
+        // 정렬 검색 버튼
+        activitiMain.homeBtnOrderBySearch.setOnClickListener(this)
+
+        // 서버 url 설정 버튼
+        activitiMain.homeBtnAdmin.setOnClickListener (this)
 
         // 홈화면 정렬 선택지
-        homeSpinner = findViewById(R.id.home_spinner)
-        homeSpinner?.adapter = ArrayAdapter.createFromResource(
+        activitiMain.homeSpinner.adapter = ArrayAdapter.createFromResource(
             this,
             R.array.spinner_array,
             android.R.layout.simple_spinner_item
         )
+    }
 
-        // 서버 url 설정 버튼
-        homeBtnAdmin = findViewById(R.id.home_btnAdmin)
-        homeBtnAdmin?.setOnClickListener {
-            val editText = EditText(this)
-            editText.gravity = Gravity.CENTER
-            editText.hint = "서버 API 주소 입력"
-            modalUpdateServerUrl(editText)
-        }
-
-        // 제목 검색 버튼
-        homeTextInputTitle = findViewById(R.id.home_textInputTitle)
-        homeBtnTitleSearch = findViewById(R.id.home_btnTitleSearch)
-        homeBtnTitleSearch?.setOnClickListener {
-            getTitlePosts(homeTextInputTitle?.text.toString())
-            Toast.makeText(this, "${homeTextInputTitle?.text} 조회", Toast.LENGTH_SHORT).show()
-        }
-
-        // 정렬 검색 버튼
-        homeBtnOrderBySearch = findViewById(R.id.home_btnOrderBySearch)
-        homeBtnOrderBySearch?.setOnClickListener {
-            getPosts(homeSpinner?.selectedItem.toString())
-            Toast.makeText(
-                this,
-                "${homeSpinner?.selectedItem.toString()} 정렬 전체 조회",
-                Toast.LENGTH_SHORT
-            )
-                .show()
+    override fun onClick(v: View?) {
+        when (v?.id) {
+            R.id.home_btnPostAdd -> changeViewPostAdd()
+            R.id.home_btnTitleSearch -> {
+                getTitlePosts(activitiMain.homeTextInputTitle.text.toString())
+                Toast.makeText(this, "${activitiMain.homeTextInputTitle.text} 조회", Toast.LENGTH_SHORT).show()
+            }
+            R.id.home_btnOrderBySearch -> {
+                getPosts(activitiMain.homeSpinner.selectedItem.toString())
+                Toast.makeText(this, "${activitiMain.homeSpinner.selectedItem} 정렬 전체 조회", Toast.LENGTH_SHORT).show()
+            }
+            R.id.home_btnAdmin -> {
+                val editText = EditText(this)
+                editText.gravity = Gravity.CENTER
+                editText.hint = "서버 API 주소 입력"
+                modalUpdateServerUrl(editText)
+            }
         }
     }
 
@@ -432,4 +436,6 @@ class MainActivity : AppCompatActivity() {
             }
         })
     }
+
+
 }

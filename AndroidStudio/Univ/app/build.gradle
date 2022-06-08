@@ -5,6 +5,7 @@ plugins {
 
 android {
     compileSdk 32
+    buildFeatures.viewBinding = true
 
     defaultConfig {
         applicationId "kr.tutorials.yguniv_anonymous_post"
