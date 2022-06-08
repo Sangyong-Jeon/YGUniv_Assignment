@@ -89,7 +89,7 @@
         <TextView
             android:id="@+id/post_tvContent"
             android:layout_width="340dp"
-            android:layout_height="400dp"
+            android:layout_height="390dp"
             android:background="@color/light_grey"
             android:padding="2dp"
             android:text="내용"
