@@ -27,4 +27,11 @@ interface PostAPI {
         @Path("postId") postId: Long,
         @Body postFormDto: PostForm
     ): Call<ResponseData<String>>
+
+    // 게시글 삭제
+    @DELETE("/api/posts/{postId}")
+    fun deletePost(
+        @Path("postId") postId: Long,
+        @Query("password") password: String
+    ): Call<ResponseData<String>>
 }

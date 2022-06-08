@@ -43,6 +43,7 @@ class MainActivity : AppCompatActivity() {
     private var postTvUpdatedDate: TextView? = null
     private var postBtnPrev: Button? = null
     private var postBtnUpdatePost: Button? = null
+    private var postBtnDeletePost: Button? = null
 
     // 게시글 수정 페이지 layout 요소
     private var postUpdateInputTitle: TextInputEditText? = null
@@ -123,17 +124,17 @@ class MainActivity : AppCompatActivity() {
     // === 게시글 등록 페이지 === //
     private fun changeViewPostAdd() {
         setContentView(R.layout.activity_post_add)
+        postAddInputTitle = findViewById(R.id.postAdd_inputTitle)
+        postAddInputContent = findViewById(R.id.postAdd_inputContent)
+        postAddInputPassword = findViewById(R.id.postAdd_inputPassword)
 
-        // 이전 페이지 전환 (홈화면으로)
+        // 이전 화면 전환 (홈화면)
         postAddBtnPrev = findViewById(R.id.postAdd_btnPrev)
         postAddBtnPrev?.setOnClickListener {
             changeViewHome()
         }
 
         // 게시글 등록
-        postAddInputTitle = findViewById(R.id.postAdd_inputTitle)
-        postAddInputContent = findViewById(R.id.postAdd_inputContent)
-        postAddInputPassword = findViewById(R.id.postAdd_inputPassword)
         postAddBtnPostAdd = findViewById(R.id.postAdd_btnAddPost)
         postAddBtnPostAdd?.setOnClickListener {
             val title = postAddInputTitle?.text.toString()
@@ -157,40 +158,96 @@ class MainActivity : AppCompatActivity() {
         postTvViewCount = findViewById(R.id.post_tvViewCount)
         postTvCreatedDate = findViewById(R.id.post_tvCreatedDate)
         postTvUpdatedDate = findViewById(R.id.post_tvUpdatedDate)
-        postBtnPrev = findViewById(R.id.post_btnPrev)
-        postBtnUpdatePost = findViewById(R.id.post_btnUpdatePost)
 
+        // 이전 화면 전환 (홈화면)
+        postBtnPrev = findViewById(R.id.post_btnPrev)
         postBtnPrev?.setOnClickListener {
             changeViewHome()
         }
 
+        // 게시글 수정 요청
+        postBtnUpdatePost = findViewById(R.id.post_btnUpdatePost)
         postBtnUpdatePost?.setOnClickListener {
             changeViewPostUpdate()
         }
+
+        // 게시글 삭제 요청
+        postBtnDeletePost = findViewById(R.id.post_btnDeletePost)
+        postBtnDeletePost?.setOnClickListener {
+            val editText = EditText(this)
+            editText.gravity = Gravity.CENTER
+            editText.hint = "비밀번호 입력"
+            modalDeletePostPw(editText, id)
+
+        }
+
+        // 게시글 상세 조회 요청
         getPost(id)
+    }
+
+    // 대화상자 열어서 비밀번호 입력
+    private fun modalDeletePostPw(editText: EditText, id: Long) {
+        AlertDialog.Builder(this)
+            .setTitle("비밀번호를 입력하세요")
+            .setMessage("게시글을 작성했을 당시의 비밀번호를 입력하세요.")
+            .setView(editText)
+            .setPositiveButton("입력") { _, _ ->
+                deletePost(id, editText.text.toString())
+            }
+            .setNegativeButton("취소") { _, _ -> }
+            .show()
+    }
+
+    // 게시글 삭제 요청
+    private fun deletePost(id: Long, password: String) {
+        api.deletePost(id, password).enqueue(object : Callback<ResponseData<String>> {
+            override fun onResponse(
+                call: Call<ResponseData<String>>,
+                response: Response<ResponseData<String>>
+            ) {
+                if (response.code() == 200) {
+                    changeViewHome()
+                    Log.i("deletePost", "게시글 삭제 성공 : ${response.raw()}")
+                    Toast.makeText(this@MainActivity, "게시글 삭제 완료", Toast.LENGTH_SHORT)
+                        .show()
+                } else {
+                    Log.e("deletePost", "게시글 삭제 실패 : ${response.errorBody()?.string()!!}")
+                    Toast.makeText(this@MainActivity, "게시글 삭제 실패", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseData<String>>, t: Throwable) {
+                Log.e("RESPONSE", "게시글 삭제 실패 : $t")
+            }
+        })
     }
 
     // === 게시글 수정 페이지 === //
     private fun changeViewPostUpdate() {
         setContentView(R.layout.activity_post_update)
-        postUpdateInputTitle = findViewById(R.id.postUpdate_inputTitle)
-        postUpdateInputContent = findViewById(R.id.postUpdate_inputContent)
         postUpdateInputPassword = findViewById(R.id.postUpdate_inputPassword)
-        postUpdateBtnPrev = findViewById(R.id.postUpdate_btnPrev)
-        postUpdateBtnUpdatePost = findViewById(R.id.postUpdate_btnUpdatePost)
 
+        // 게시글 상세 조회한 값 가져와서 수정 페이지에 사용
         var postBody = post.value?.body
         var title = postBody?.title.toString()
         var content = postBody?.content.toString()
         var password: String
 
+        // 수정할 게시글 값들 넣어놓기
+        postUpdateInputTitle = findViewById(R.id.postUpdate_inputTitle)
         postUpdateInputTitle?.setText(title)
+        postUpdateInputContent = findViewById(R.id.postUpdate_inputContent)
         postUpdateInputContent?.setText(content)
 
+        // 이전 화면 전환 (게시글 상세 조회)
+        postUpdateBtnPrev = findViewById(R.id.postUpdate_btnPrev)
         postUpdateBtnPrev?.setOnClickListener {
             changeViewPostDetail(0L)
         }
 
+        // 게시글 수정 요청
+        postUpdateBtnUpdatePost = findViewById(R.id.postUpdate_btnUpdatePost)
         postUpdateBtnUpdatePost?.setOnClickListener {
             title = postUpdateInputTitle?.text.toString()
             content = postUpdateInputContent?.text.toString()
@@ -199,7 +256,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // 게시글 수정
+    // 게시글 수정 요청
     private fun updatePost(id: Long, title: String, content: String, password: String) {
         val postForm = PostForm(title, content, password)
 
@@ -208,25 +265,19 @@ class MainActivity : AppCompatActivity() {
                 call: Call<ResponseData<String>>,
                 response: Response<ResponseData<String>>
             ) {
-
-
-                when (response.code()) {
-                    200 -> {
-                        changeViewHome()
-                        Log.i("updatePost", "게시글 수정 성공 : ${response.raw()}")
-                        Toast.makeText(this@MainActivity, "게시글 수정 완료", Toast.LENGTH_SHORT).show()
-                    }
-                    else -> {
-                        var errorMessage = response.errorBody()?.string()!!.substring(56, 67)
-                        Toast.makeText(this@MainActivity, errorMessage, Toast.LENGTH_SHORT).show()
-                    }
+                if (response.code() == 200) {
+                    changeViewHome()
+                    Log.i("updatePost", "게시글 수정 성공 : ${response.raw()}")
+                    Toast.makeText(this@MainActivity, "게시글 수정 완료", Toast.LENGTH_SHORT).show()
+                } else {
+                    var errorMessage = response.errorBody()?.string()!!.substring(56, 67)
+                    Toast.makeText(this@MainActivity, errorMessage, Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<ResponseData<String>>, t: Throwable) {
                 Log.e("RESPONSE", "게시글 수정 실패 : $t")
             }
-
         })
     }
 
