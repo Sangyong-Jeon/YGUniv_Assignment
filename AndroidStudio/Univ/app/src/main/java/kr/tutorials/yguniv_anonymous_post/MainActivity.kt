@@ -11,6 +11,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.textfield.TextInputEditText
 import kr.tutorials.yguniv_anonymous_post.databinding.ActivityMainBinding
+import kr.tutorials.yguniv_anonymous_post.databinding.ActivityPostAddBinding
 import kr.tutorials.yguniv_anonymous_post.databinding.ActivityPostBinding
 import kr.tutorials.yguniv_anonymous_post.rest.*
 import retrofit2.Call
@@ -20,13 +21,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
-
-    // 게시글 등록 페이지 layout 요소
-    private var postAddBtnPrev: Button? = null
-    private var postAddInputTitle: TextInputEditText? = null
-    private var postAddInputContent: TextInputEditText? = null
-    private var postAddInputPassword: EditText? = null
-    private var postAddBtnPostAdd: Button? = null
 
     // 게시글 수정 페이지 layout 요소
     private var postUpdateInputTitle: TextInputEditText? = null
@@ -56,6 +50,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     private val activitiPost by lazy {
         ActivityPostBinding.inflate(layoutInflater)
+    }
+
+    private val activitiPostAdd by lazy {
+        ActivityPostAddBinding.inflate(layoutInflater)
     }
 
     // 첫시작
@@ -112,22 +110,17 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     // === 게시글 등록 페이지 === //
     private fun changeViewPostAdd() {
         setContentView(R.layout.activity_post_add)
-        postAddInputTitle = findViewById(R.id.postAdd_inputTitle)
-        postAddInputContent = findViewById(R.id.postAdd_inputContent)
-        postAddInputPassword = findViewById(R.id.postAdd_inputPassword)
 
         // 이전 화면 전환 (홈화면)
-        postAddBtnPrev = findViewById(R.id.postAdd_btnPrev)
-        postAddBtnPrev?.setOnClickListener {
+        activitiPostAdd.postAddBtnPrev.setOnClickListener {
             changeViewHome()
         }
 
         // 게시글 등록
-        postAddBtnPostAdd = findViewById(R.id.postAdd_btnAddPost)
-        postAddBtnPostAdd?.setOnClickListener {
-            val title = postAddInputTitle?.text.toString()
-            val content = postAddInputContent?.text.toString()
-            val password = postAddInputPassword?.text.toString()
+        activitiPostAdd.postAddBtnAddPost.setOnClickListener {
+            val title = activitiPostAdd.postAddInputTitle.text.toString()
+            val content = activitiPostAdd.postAddInputContent.text.toString()
+            val password = activitiPostAdd.postAddInputPassword.text.toString()
 
             if (validatePostAdd(title, content, password)) {
                 addPost(title, content, password)
