@@ -13,6 +13,7 @@ import com.google.android.material.textfield.TextInputEditText
 import kr.tutorials.yguniv_anonymous_post.databinding.ActivityMainBinding
 import kr.tutorials.yguniv_anonymous_post.databinding.ActivityPostAddBinding
 import kr.tutorials.yguniv_anonymous_post.databinding.ActivityPostBinding
+import kr.tutorials.yguniv_anonymous_post.databinding.ActivityPostUpdateBinding
 import kr.tutorials.yguniv_anonymous_post.rest.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -21,13 +22,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
-
-    // 게시글 수정 페이지 layout 요소
-    private var postUpdateInputTitle: TextInputEditText? = null
-    private var postUpdateInputContent: TextInputEditText? = null
-    private var postUpdateInputPassword: EditText? = null
-    private var postUpdateBtnPrev: Button? = null
-    private var postUpdateBtnUpdatePost: Button? = null
 
     // api 요소
     private var url: String = "http://10.0.2.2:8080"
@@ -44,16 +38,20 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     private var post = MutableLiveData<ResponseData<PostBody>>()
 
     // layout 파일에 해당하는 객체 생성
-    private val activitiMain by lazy {
+    private val activityMain by lazy {
         ActivityMainBinding.inflate(layoutInflater)
     }
 
-    private val activitiPost by lazy {
+    private val activityPost by lazy {
         ActivityPostBinding.inflate(layoutInflater)
     }
 
-    private val activitiPostAdd by lazy {
+    private val activityPostAdd by lazy {
         ActivityPostAddBinding.inflate(layoutInflater)
+    }
+
+    private val activityPostUpdate by lazy {
+        ActivityPostUpdateBinding.inflate(layoutInflater)
     }
 
     // 첫시작
@@ -64,23 +62,23 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     // === 홈화면 페이지 === //
     private fun changeViewHome() {
-        setContentView(activitiMain.root)
+        setContentView(activityMain.root)
         getPosts("최신순")
 
         // 게시글 등록 페이지 전환
-        activitiMain.homeBtnPostAdd.setOnClickListener(this)
+        activityMain.homeBtnPostAdd.setOnClickListener(this)
 
         // 제목 검색 버튼
-        activitiMain.homeBtnTitleSearch.setOnClickListener(this)
+        activityMain.homeBtnTitleSearch.setOnClickListener(this)
 
         // 정렬 검색 버튼
-        activitiMain.homeBtnOrderBySearch.setOnClickListener(this)
+        activityMain.homeBtnOrderBySearch.setOnClickListener(this)
 
         // 서버 url 설정 버튼
-        activitiMain.homeBtnAdmin.setOnClickListener (this)
+        activityMain.homeBtnAdmin.setOnClickListener (this)
 
         // 홈화면 정렬 선택지
-        activitiMain.homeSpinner.adapter = ArrayAdapter.createFromResource(
+        activityMain.homeSpinner.adapter = ArrayAdapter.createFromResource(
             this,
             R.array.spinner_array,
             android.R.layout.simple_spinner_item
@@ -91,12 +89,12 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         when (v?.id) {
             R.id.home_btnPostAdd -> changeViewPostAdd()
             R.id.home_btnTitleSearch -> {
-                getTitlePosts(activitiMain.homeTextInputTitle.text.toString())
-                Toast.makeText(this, "${activitiMain.homeTextInputTitle.text} 조회", Toast.LENGTH_SHORT).show()
+                getTitlePosts(activityMain.homeTextInputTitle.text.toString())
+                Toast.makeText(this, "${activityMain.homeTextInputTitle.text} 조회", Toast.LENGTH_SHORT).show()
             }
             R.id.home_btnOrderBySearch -> {
-                getPosts(activitiMain.homeSpinner.selectedItem.toString())
-                Toast.makeText(this, "${activitiMain.homeSpinner.selectedItem} 정렬 전체 조회", Toast.LENGTH_SHORT).show()
+                getPosts(activityMain.homeSpinner.selectedItem.toString())
+                Toast.makeText(this, "${activityMain.homeSpinner.selectedItem} 정렬 전체 조회", Toast.LENGTH_SHORT).show()
             }
             R.id.home_btnAdmin -> {
                 val editText = EditText(this)
@@ -109,18 +107,18 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     // === 게시글 등록 페이지 === //
     private fun changeViewPostAdd() {
-        setContentView(R.layout.activity_post_add)
+        setContentView(activityPostAdd.root)
 
         // 이전 화면 전환 (홈화면)
-        activitiPostAdd.postAddBtnPrev.setOnClickListener {
+        activityPostAdd.postAddBtnPrev.setOnClickListener {
             changeViewHome()
         }
 
         // 게시글 등록
-        activitiPostAdd.postAddBtnAddPost.setOnClickListener {
-            val title = activitiPostAdd.postAddInputTitle.text.toString()
-            val content = activitiPostAdd.postAddInputContent.text.toString()
-            val password = activitiPostAdd.postAddInputPassword.text.toString()
+        activityPostAdd.postAddBtnAddPost.setOnClickListener {
+            val title = activityPostAdd.postAddInputTitle.text.toString()
+            val content = activityPostAdd.postAddInputContent.text.toString()
+            val password = activityPostAdd.postAddInputPassword.text.toString()
 
             if (validatePostAdd(title, content, password)) {
                 addPost(title, content, password)
@@ -133,16 +131,16 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     // === 게시글 상세조회 페이지 === //
     private fun changeViewPostDetail(id: Long) {
-        setContentView(activitiPost.root)
+        setContentView(activityPost.root)
 
         // 이전 화면 전환 (홈화면)
-        activitiPost.postBtnPrev.setOnClickListener { changeViewHome() }
+        activityPost.postBtnPrev.setOnClickListener { changeViewHome() }
 
         // 게시글 수정 요청
-        activitiPost.postBtnUpdatePost.setOnClickListener { changeViewPostUpdate() }
+        activityPost.postBtnUpdatePost.setOnClickListener { changeViewPostUpdate() }
 
         // 게시글 삭제 요청
-        activitiPost.postBtnDeletePost.setOnClickListener {
+        activityPost.postBtnDeletePost.setOnClickListener {
             val editText = EditText(this)
             editText.gravity = Gravity.CENTER
             editText.hint = "비밀번호 입력"
@@ -188,8 +186,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     // === 게시글 수정 페이지 === //
     private fun changeViewPostUpdate() {
-        setContentView(R.layout.activity_post_update)
-        postUpdateInputPassword = findViewById(R.id.postUpdate_inputPassword)
+        setContentView(activityPostUpdate.root)
 
         // 게시글 상세 조회한 값 가져와서 수정 페이지에 사용
         var postBody = post.value?.body
@@ -198,23 +195,19 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         var password: String
 
         // 수정할 게시글 값들 넣어놓기
-        postUpdateInputTitle = findViewById(R.id.postUpdate_inputTitle)
-        postUpdateInputTitle?.setText(title)
-        postUpdateInputContent = findViewById(R.id.postUpdate_inputContent)
-        postUpdateInputContent?.setText(content)
+        activityPostUpdate.postUpdateInputTitle.setText(title)
+        activityPostUpdate.postUpdateInputContent.setText(content)
 
         // 이전 화면 전환 (게시글 상세 조회)
-        postUpdateBtnPrev = findViewById(R.id.postUpdate_btnPrev)
-        postUpdateBtnPrev?.setOnClickListener {
+        activityPostUpdate.postUpdateBtnPrev.setOnClickListener {
             changeViewPostDetail(0L)
         }
 
         // 게시글 수정 요청
-        postUpdateBtnUpdatePost = findViewById(R.id.postUpdate_btnUpdatePost)
-        postUpdateBtnUpdatePost?.setOnClickListener {
-            title = postUpdateInputTitle?.text.toString()
-            content = postUpdateInputContent?.text.toString()
-            password = postUpdateInputPassword?.text.toString()
+        activityPostUpdate.postUpdateBtnUpdatePost.setOnClickListener {
+            title = activityPostUpdate.postUpdateInputTitle.text.toString()
+            content = activityPostUpdate.postUpdateInputContent.text.toString()
+            password = activityPostUpdate.postUpdateInputPassword.text.toString()
             postBody?.let { updatePost(postBody.id, title, content, password) }
         }
     }
@@ -332,11 +325,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     // 게시글 상세 조회 페이지 갱신
     private fun showPost() {
         var postBody = post.value?.body
-        activitiPost.postTvTitle.text = postBody?.title
-        activitiPost.postTvContent.text = postBody?.content
-        activitiPost.postTvViewCount.text = postBody?.viewCount.toString()
-        activitiPost.postTvCreatedDate.text = postBody?.createDate
-        activitiPost.postTvUpdatedDate.text = postBody?.updateDate
+        activityPost.postTvTitle.text = postBody?.title
+        activityPost.postTvContent.text = postBody?.content
+        activityPost.postTvViewCount.text = postBody?.viewCount.toString()
+        activityPost.postTvCreatedDate.text = postBody?.createDate
+        activityPost.postTvUpdatedDate.text = postBody?.updateDate
     }
 
     // 게시글 전체 조회 (정렬순)
@@ -369,12 +362,12 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             changeViewPostDetail(post.id)
         }
 
-        activitiMain.homeMRecyclerView.adapter = mAdapter
+        activityMain.homeMRecyclerView.adapter = mAdapter
 
         // RecyclerView의 각 item들을 배치하고, item이 더이상 보이지 않을때 재사용할것인지 결정하는 역할을 한다.
         val lm = LinearLayoutManager(this)
-        activitiMain.homeMRecyclerView.layoutManager = lm
-        activitiMain.homeMRecyclerView.setHasFixedSize(true)
+        activityMain.homeMRecyclerView.layoutManager = lm
+        activityMain.homeMRecyclerView.setHasFixedSize(true)
     }
 
     // 게시글 등록
