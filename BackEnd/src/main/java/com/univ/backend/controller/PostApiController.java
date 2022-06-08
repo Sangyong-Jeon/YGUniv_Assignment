@@ -76,12 +76,8 @@ public class PostApiController {
     @PostMapping("/posts")
     public ResponseEntity<ResponseData<String>> addPost(@RequestBody PostForm postFormDto) throws URISyntaxException {
         ResponseData<String> responseData = postService.addPost(postFormDto);
-        HttpHeaders headers = new HttpHeaders(); // 헤더를 설정하기 위해 생성
-        headers.setLocation(new URI("http://10.0.2.2:8080")); // 헤더에 location 추가함.
-        // MOVED_PERMANENTLY는 HTTP 301로 영구적인 리다이렉션을 하겠다는 의미임.
-        // 웹 브라우저는 300번 대 응답의 결가에 Location 헤더가 있으면 Location 위치로 자동 이동(리다이렉트, GET)한다.
         log.info("게시글 등록 완료");
-        return new ResponseEntity<>(responseData, headers, HttpStatus.MOVED_PERMANENTLY);
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
     /*
@@ -93,10 +89,8 @@ public class PostApiController {
     public ResponseEntity<ResponseData<String>> updatePost(@PathVariable("postId") Long postId,
                                                            @RequestBody PostForm postFormDto) throws URISyntaxException {
         ResponseData<String> responseData = postService.updatePost(postId, postFormDto);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(new URI("http://10.0.2.2:8080"));
         log.info("게시글 수정 완료");
-        return new ResponseEntity<>(responseData, headers, HttpStatus.MOVED_PERMANENTLY);
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
     /*
@@ -107,9 +101,7 @@ public class PostApiController {
     public ResponseEntity<ResponseData<String>> deletePost(@PathVariable("postId") Long postId,
                                                            @RequestParam("password") String password) throws URISyntaxException {
         ResponseData<String> responseData = postService.deletePost(postId, password);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(new URI("http://10.0.2.2:8080"));
         log.info("게시글 삭제 완료");
-        return new ResponseEntity<>(responseData, headers, HttpStatus.MOVED_PERMANENTLY);
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 }
