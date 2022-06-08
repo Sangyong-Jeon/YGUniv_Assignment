@@ -11,7 +11,7 @@ interface PostAPI {
 
     // 게시글 상세 조회
     @GET("/api/posts/{postId}")
-    fun getPost(@Path("postId") postId: Int): Call<ResponseData<ArrayList<PostBody>>>
+    fun getPost(@Path("postId") postId: Long): Call<ResponseData<PostBody>>
 
     // 게시글 검색
     @GET("/api/posts/search")
