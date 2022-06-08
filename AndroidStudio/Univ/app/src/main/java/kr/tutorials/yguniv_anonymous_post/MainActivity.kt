@@ -9,27 +9,17 @@ import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
 import kr.tutorials.yguniv_anonymous_post.databinding.ActivityMainBinding
+import kr.tutorials.yguniv_anonymous_post.databinding.ActivityPostBinding
 import kr.tutorials.yguniv_anonymous_post.rest.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.lang.NumberFormatException
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
-
-    // 홈화면 layout 요소
-    private var homeSpinner: Spinner? = null
-    private var homeMRecyclerView: RecyclerView? = null
-    private var homeBtnTitleSearch: Button? = null
-    private var homeBtnOrderBySearch: Button? = null
-    private var homeBtnAdmin: Button? = null
-    private var homeBtnPostAdd: Button? = null
-    private var homeTextInputTitle: TextInputEditText? = null
 
     // 게시글 등록 페이지 layout 요소
     private var postAddBtnPrev: Button? = null
@@ -37,16 +27,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     private var postAddInputContent: TextInputEditText? = null
     private var postAddInputPassword: EditText? = null
     private var postAddBtnPostAdd: Button? = null
-
-    // 게시글 상세 조회 페이지 layout 요소
-    private var postTvTitle: TextView? = null
-    private var postTvContent: TextView? = null
-    private var postTvViewCount: TextView? = null
-    private var postTvCreatedDate: TextView? = null
-    private var postTvUpdatedDate: TextView? = null
-    private var postBtnPrev: Button? = null
-    private var postBtnUpdatePost: Button? = null
-    private var postBtnDeletePost: Button? = null
 
     // 게시글 수정 페이지 layout 요소
     private var postUpdateInputTitle: TextInputEditText? = null
@@ -72,6 +52,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     // layout 파일에 해당하는 객체 생성
     private val activitiMain by lazy {
         ActivityMainBinding.inflate(layoutInflater)
+    }
+
+    private val activitiPost by lazy {
+        ActivityPostBinding.inflate(layoutInflater)
     }
 
     // 첫시작
@@ -156,33 +140,20 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     // === 게시글 상세조회 페이지 === //
     private fun changeViewPostDetail(id: Long) {
-        setContentView(R.layout.activity_post)
-        postTvTitle = findViewById(R.id.post_tvTitle)
-        postTvContent = findViewById(R.id.post_tvContent)
-        postTvViewCount = findViewById(R.id.post_tvViewCount)
-        postTvCreatedDate = findViewById(R.id.post_tvCreatedDate)
-        postTvUpdatedDate = findViewById(R.id.post_tvUpdatedDate)
+        setContentView(activitiPost.root)
 
         // 이전 화면 전환 (홈화면)
-        postBtnPrev = findViewById(R.id.post_btnPrev)
-        postBtnPrev?.setOnClickListener {
-            changeViewHome()
-        }
+        activitiPost.postBtnPrev.setOnClickListener { changeViewHome() }
 
         // 게시글 수정 요청
-        postBtnUpdatePost = findViewById(R.id.post_btnUpdatePost)
-        postBtnUpdatePost?.setOnClickListener {
-            changeViewPostUpdate()
-        }
+        activitiPost.postBtnUpdatePost.setOnClickListener { changeViewPostUpdate() }
 
         // 게시글 삭제 요청
-        postBtnDeletePost = findViewById(R.id.post_btnDeletePost)
-        postBtnDeletePost?.setOnClickListener {
+        activitiPost.postBtnDeletePost.setOnClickListener {
             val editText = EditText(this)
             editText.gravity = Gravity.CENTER
             editText.hint = "비밀번호 입력"
             modalDeletePostPw(editText, id)
-
         }
 
         // 게시글 상세 조회 요청
@@ -195,9 +166,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             .setTitle("비밀번호를 입력하세요")
             .setMessage("게시글을 작성했을 당시의 비밀번호를 입력하세요.")
             .setView(editText)
-            .setPositiveButton("입력") { _, _ ->
-                deletePost(id, editText.text.toString())
-            }
+            .setPositiveButton("입력") { _, _ -> deletePost(id, editText.text.toString()) }
             .setNegativeButton("취소") { _, _ -> }
             .show()
     }
@@ -205,10 +174,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     // 게시글 삭제 요청
     private fun deletePost(id: Long, password: String) {
         api.deletePost(id, password).enqueue(object : Callback<ResponseData<String>> {
-            override fun onResponse(
-                call: Call<ResponseData<String>>,
-                response: Response<ResponseData<String>>
-            ) {
+            override fun onResponse(call: Call<ResponseData<String>>, response: Response<ResponseData<String>>) {
                 if (response.code() == 200) {
                     changeViewHome()
                     Log.i("deletePost", "게시글 삭제 성공 : ${response.raw()}")
@@ -410,13 +376,12 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             changeViewPostDetail(post.id)
         }
 
-        homeMRecyclerView = findViewById(R.id.home_mRecyclerView)
-        homeMRecyclerView?.adapter = mAdapter
+        activitiMain.homeMRecyclerView.adapter = mAdapter
 
         // RecyclerView의 각 item들을 배치하고, item이 더이상 보이지 않을때 재사용할것인지 결정하는 역할을 한다.
         val lm = LinearLayoutManager(this)
-        homeMRecyclerView?.layoutManager = lm
-        homeMRecyclerView?.setHasFixedSize(true)
+        activitiMain.homeMRecyclerView.layoutManager = lm
+        activitiMain.homeMRecyclerView.setHasFixedSize(true)
     }
 
     // 게시글 등록
