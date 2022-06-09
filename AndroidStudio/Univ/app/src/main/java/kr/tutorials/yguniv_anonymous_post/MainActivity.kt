@@ -12,15 +12,37 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import kr.tutorials.yguniv_anonymous_post.databinding.ActivityMainBinding
 import kr.tutorials.yguniv_anonymous_post.rest.*
 import androidx.activity.viewModels
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     private val viewModel by viewModels<MainViewModel>()
     private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
+    private var adapter = MainRvAdapter()
+
+    private val itemTouchCallback = object : ItemTouchHelper.SimpleCallback(
+        ItemTouchHelper.UP or ItemTouchHelper.DOWN,
+        ItemTouchHelper.LEFT
+    ) {
+        override fun onMove(
+            recyclerView: RecyclerView,
+            viewHolder: RecyclerView.ViewHolder,
+            target: RecyclerView.ViewHolder
+        ): Boolean {
+            adapter.swapItem(viewHolder.layoutPosition, target.layoutPosition)
+            return true
+        }
+
+        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+            adapter.removeItem(viewHolder.layoutPosition)
+        }
+
+    }
 
     override fun onStart() {
         super.onStart()
-        Log.i("MainActivity","onStart()")
+        Log.i("MainActivity", "onStart()")
         viewModel.getPosts("최신순")
     }
 
@@ -36,12 +58,12 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onStop() {
         super.onStop()
-        Log.i("MainActivity","onStop()")
+        Log.i("MainActivity", "onStop()")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.i("MainActivity","onCreate()")
+        Log.i("MainActivity", "onCreate()")
         setContentView(binding.root)
 
         // 게시글 등록 페이지 전환
@@ -60,17 +82,19 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         )
 
         // RecyclerView의 각 item들을 배치하고, item이 더이상 보이지 않을때 재사용할것인지 결정하는 역할을 한다.
-        val lm = LinearLayoutManager(this)
-        binding.homeMRecyclerView.layoutManager = lm
+        val manager = LinearLayoutManager(this)
+        binding.homeMRecyclerView.layoutManager = manager
         binding.homeMRecyclerView.setHasFixedSize(true)
+        binding.homeMRecyclerView.adapter = adapter
+        ItemTouchHelper(itemTouchCallback).attachToRecyclerView(binding.homeMRecyclerView)
+        adapter.setListener { _, position ->
+            val data = adapter.getItem(position)
+            changeViewPostDetail(data.id)
+        }
 
         // posts가 바뀔때마다 실행
         viewModel.posts.observe(this) {
-            // 람다식 { (Dog) -> Unit } 부분을 추가하여 itemView의 setOnClickListener에서 어떤 액션을 취할지 설정해준다.
-            val mAdapter = MainRvAdapter(this, viewModel.posts.value?.body) { post ->
-                changeViewPostDetail(post.id)
-            }
-            binding.homeMRecyclerView.adapter = mAdapter
+            viewModel.posts.value?.body?.let { it1 -> adapter.setData(it1) }
         }
     }
 

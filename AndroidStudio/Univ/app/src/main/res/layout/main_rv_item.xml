@@ -24,6 +24,8 @@
         android:layout_width="10dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:ellipsize="end"
+        android:maxLines="1"
         android:layout_weight="4"
         android:text="제목"
         android:textAlignment="center"
