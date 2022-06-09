@@ -24,42 +24,35 @@ class PostActivity : AppCompatActivity(), View.OnClickListener {
             isCheck = it.data?.getBooleanExtra("result", true) == true
         }
 
-    override fun onResume() {
-        super.onResume()
-        if (isCheck) viewModel.getPost(id!!)
-        else finish()
-        Log.i("PostActivity", "onResume()")
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.i("PostActivity", "onCreate()")
         setContentView(binding.root)
-
-        // 이전 화면 전환 (홈화면)
-        binding.postBtnPrev.setOnClickListener(this)
-        // 게시글 수정 요청
-        binding.postBtnUpdatePost.setOnClickListener(this)
-        // 게시글 삭제 요청
-        binding.postBtnDeletePost.setOnClickListener(this)
+        binding.postBtnPrev.setOnClickListener(this)// 이전 화면 전환 (홈화면)
+        binding.postBtnUpdatePost.setOnClickListener(this)// 게시글 수정 요청
+        binding.postBtnDeletePost.setOnClickListener(this)// 게시글 삭제 요청
 
         with(intent) {
             id = getLongExtra("id", 0)
         }
 
         viewModel.post.observe(this) {
-            showPost()
+            renewPost()
         }
 
         viewModel.isDeletePost.observe(this) {
-            when (viewModel.isDeletePost.value) {
-                true -> {
-                    Toast.makeText(this, "게시글 삭제 완료", Toast.LENGTH_SHORT).show()
-                    finish()
-                }
-                false -> Toast.makeText(this, "게시글 삭제 실패", Toast.LENGTH_SHORT).show()
-            }
+            if (viewModel.isDeletePost.value == true) {
+                Toast.makeText(this, "게시글 삭제 완료", Toast.LENGTH_SHORT).show()
+                finish()
+            } else Toast.makeText(this, "게시글 삭제 실패", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (isCheck) viewModel.getPost(id!!)
+        else finish()
+        Log.i("PostActivity", "onResume()")
     }
 
     override fun onClick(v: View?) {
@@ -68,6 +61,7 @@ class PostActivity : AppCompatActivity(), View.OnClickListener {
             R.id.post_btnUpdatePost -> changeViewPostUpdate()
             R.id.post_btnDeletePost -> {
                 val editText = EditText(this)
+                editText.inputType = 0x00000081
                 editText.gravity = Gravity.CENTER
                 editText.hint = "비밀번호 입력"
                 modalDeletePostPw(editText, viewModel.post.value?.body?.id!!)
@@ -99,7 +93,7 @@ class PostActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     // 게시글 상세 조회 페이지 갱신
-    private fun showPost() {
+    private fun renewPost() {
         var postBody = viewModel.post.value?.body
         binding.postTvTitle.text = postBody?.title
         binding.postTvContent.text = postBody?.content

@@ -10,34 +10,34 @@ import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import kr.tutorials.yguniv_anonymous_post.databinding.ActivityMainBinding
-import kr.tutorials.yguniv_anonymous_post.rest.*
+import kr.tutorials.yguniv_anonymous_post.api.*
 import androidx.activity.viewModels
-import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.RecyclerView
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
 
+    private var adapter = MainRvAdapter()
     private val viewModel by viewModels<MainViewModel>()
     private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
-    private var adapter = MainRvAdapter()
 
-    private val itemTouchCallback = object : ItemTouchHelper.SimpleCallback(
-        ItemTouchHelper.UP or ItemTouchHelper.DOWN,
-        ItemTouchHelper.LEFT
-    ) {
-        override fun onMove(
-            recyclerView: RecyclerView,
-            viewHolder: RecyclerView.ViewHolder,
-            target: RecyclerView.ViewHolder
-        ): Boolean {
-            adapter.swapItem(viewHolder.layoutPosition, target.layoutPosition)
-            return true
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(binding.root)
+
+        initRecyclerView()
+        binding.homeBtnPostAdd.setOnClickListener(this)// 게시글 등록 페이지 전환
+        binding.homeBtnTitleSearch.setOnClickListener(this)// 제목 검색 버튼
+        binding.homeBtnOrderBySearch.setOnClickListener(this)// 정렬 검색 버튼
+        binding.homeBtnAdmin.setOnClickListener(this)// 서버 url 설정 버튼
+        binding.homeSpinner.adapter = ArrayAdapter.createFromResource(// 홈화면 정렬 선택지
+            this,
+            R.array.spinner_array,
+            android.R.layout.simple_spinner_item
+        )
+
+        // posts 상태변경시 실행
+        viewModel.posts.observe(this) {
+            viewModel.posts.value?.body?.let { it -> adapter.setData(it) }
         }
-
-        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-            adapter.removeItem(viewHolder.layoutPosition)
-        }
-
     }
 
     override fun onStart() {
@@ -46,55 +46,15 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         viewModel.getPosts("최신순")
     }
 
-    override fun onResume() {
-        super.onResume()
-        Log.i("MainActivity", "onResume()")
-    }
-
-    override fun onPause() {
-        super.onPause()
-        Log.i("MainActivity", "onPause()")
-    }
-
-    override fun onStop() {
-        super.onStop()
-        Log.i("MainActivity", "onStop()")
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        Log.i("MainActivity", "onCreate()")
-        setContentView(binding.root)
-
-        // 게시글 등록 페이지 전환
-        binding.homeBtnPostAdd.setOnClickListener(this)
-        // 제목 검색 버튼
-        binding.homeBtnTitleSearch.setOnClickListener(this)
-        // 정렬 검색 버튼
-        binding.homeBtnOrderBySearch.setOnClickListener(this)
-        // 서버 url 설정 버튼
-        binding.homeBtnAdmin.setOnClickListener(this)
-        // 홈화면 정렬 선택지
-        binding.homeSpinner.adapter = ArrayAdapter.createFromResource(
-            this,
-            R.array.spinner_array,
-            android.R.layout.simple_spinner_item
-        )
-
-        // RecyclerView의 각 item들을 배치하고, item이 더이상 보이지 않을때 재사용할것인지 결정하는 역할을 한다.
+    // RecyclerView 초기화
+    private fun initRecyclerView() {
         val manager = LinearLayoutManager(this)
-        binding.homeMRecyclerView.layoutManager = manager
-        binding.homeMRecyclerView.setHasFixedSize(true)
-        binding.homeMRecyclerView.adapter = adapter
-        ItemTouchHelper(itemTouchCallback).attachToRecyclerView(binding.homeMRecyclerView)
+        binding.homeRecyclerView.layoutManager = manager
+        binding.homeRecyclerView.setHasFixedSize(true)
+        binding.homeRecyclerView.adapter = adapter
         adapter.setListener { _, position ->
             val data = adapter.getItem(position)
             changeViewPostDetail(data.id)
-        }
-
-        // posts가 바뀔때마다 실행
-        viewModel.posts.observe(this) {
-            viewModel.posts.value?.body?.let { it1 -> adapter.setData(it1) }
         }
     }
 
@@ -141,7 +101,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     private fun modalUpdateServerUrl(editText: EditText) {
         AlertDialog.Builder(this)
             .setTitle("서버 API 주소를 입력하세요")
-            .setMessage("기본값 : http://10.0.2.2:8080\n현재값 : ${JsServer.url}")
+            .setMessage("기본값 : http://10.0.2.2:8080\n현재값 : ${SpringServer.url}")
             .setView(editText)
             .setPositiveButton("설정") { _, _ ->
                 validateServerUrl(editText)
@@ -151,11 +111,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             }.show()
     }
 
-    // 사용자가 작성한 서버 URL 검증
+    // 사용자가 작성한 서버 URL 검증 후 변경
     private fun validateServerUrl(editText: EditText) {
         if (editText.text.length > 3 && editText.text.substring(0..3) == "http") {
-            JsServer.url = editText.text.toString()
-            JsServer.renewServerUrl()
+            SpringServer.url = editText.text.toString()
+            SpringServer.renewServerUrl()
             Toast.makeText(this, "서버 URL이 변경되었습니다.", Toast.LENGTH_SHORT).show()
         } else {
             Toast.makeText(this, "올바르지 않은 서버 URL입니다.\n다시 입력해주세요.", Toast.LENGTH_SHORT).show()

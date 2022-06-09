@@ -1,4 +1,4 @@
-package kr.tutorials.yguniv_anonymous_post.rest
+package kr.tutorials.yguniv_anonymous_post.dto
 
 data class PostBody(
     var id: Long,

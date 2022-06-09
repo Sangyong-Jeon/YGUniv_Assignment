@@ -3,17 +3,10 @@ package kr.tutorials.yguniv_anonymous_post
 import android.app.Activity
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import kr.tutorials.yguniv_anonymous_post.databinding.ActivityPostUpdateBinding
-import kr.tutorials.yguniv_anonymous_post.rest.PostForm
-import kr.tutorials.yguniv_anonymous_post.rest.ResponseData
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 class PostUpdateActivity : AppCompatActivity(), View.OnClickListener {
 
@@ -28,6 +21,9 @@ class PostUpdateActivity : AppCompatActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         setResult(Activity.RESULT_CANCELED)
+
+        binding.postUpdateBtnPrev.setOnClickListener(this)// 이전 화면 전환 (게시글 상세 조회)
+        binding.postUpdateBtnUpdatePost.setOnClickListener(this)// 게시글 수정 요청
 
         with(intent) {
             id = getLongExtra("id", 0)
@@ -46,15 +42,8 @@ class PostUpdateActivity : AppCompatActivity(), View.OnClickListener {
                 setResult(RESULT_OK, intent)
                 Toast.makeText(this, "게시글 수정을 완료하였습니다.", Toast.LENGTH_SHORT).show()
                 finish()
-            } else {
-                Toast.makeText(this, "게시글 수정에 실패하였습니다.", Toast.LENGTH_SHORT).show()
-            }
+            } else Toast.makeText(this, "게시글 수정에 실패하였습니다.", Toast.LENGTH_SHORT).show()
         }
-
-        // 이전 화면 전환 (게시글 상세 조회)
-        binding.postUpdateBtnPrev.setOnClickListener(this)
-        // 게시글 수정 요청
-        binding.postUpdateBtnUpdatePost.setOnClickListener(this)
     }
 
     override fun onClick(v: View?) {

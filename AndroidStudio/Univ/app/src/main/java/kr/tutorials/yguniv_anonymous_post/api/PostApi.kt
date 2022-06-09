@@ -1,5 +1,9 @@
-package kr.tutorials.yguniv_anonymous_post.rest
+package kr.tutorials.yguniv_anonymous_post.api
 
+import kr.tutorials.yguniv_anonymous_post.dto.PostBody
+import kr.tutorials.yguniv_anonymous_post.dto.PostForm
+import kr.tutorials.yguniv_anonymous_post.dto.PostsBody
+import kr.tutorials.yguniv_anonymous_post.dto.ResponseData
 import retrofit2.Call
 import retrofit2.http.*
 

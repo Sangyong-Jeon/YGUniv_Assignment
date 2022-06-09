@@ -13,7 +13,7 @@
         android:theme="@style/Theme.YGUniv_Anonymous_Post"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".rest.PostAddActivity"
+            android:name=".PostAddActivity"
             android:exported="false" />
         <activity
             android:name=".PostUpdateActivity"
