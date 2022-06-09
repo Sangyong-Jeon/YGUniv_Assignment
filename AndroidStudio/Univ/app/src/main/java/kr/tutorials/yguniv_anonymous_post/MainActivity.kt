@@ -1,5 +1,6 @@
 package kr.tutorials.yguniv_anonymous_post
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -7,94 +8,87 @@ import android.view.Gravity
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
-import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.textfield.TextInputEditText
 import kr.tutorials.yguniv_anonymous_post.databinding.ActivityMainBinding
-import kr.tutorials.yguniv_anonymous_post.databinding.ActivityPostAddBinding
-import kr.tutorials.yguniv_anonymous_post.databinding.ActivityPostBinding
-import kr.tutorials.yguniv_anonymous_post.databinding.ActivityPostUpdateBinding
 import kr.tutorials.yguniv_anonymous_post.rest.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import androidx.activity.viewModels
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
 
-    // api 요소
-    private var url: String = "http://10.0.2.2:8080"
-    private var retrofit = Retrofit.Builder()
-        .baseUrl(url)
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-    private var api = retrofit.create(PostAPI::class.java)
+    private val viewModel by viewModels<MainViewModel>()
+    private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
 
-    // 게시글 리스트 값
-    private var posts = MutableLiveData<ResponseData<ArrayList<PostsBody>>>()
-
-    // 게시글 값
-    private var post = MutableLiveData<ResponseData<PostBody>>()
-
-    // layout 파일에 해당하는 객체 생성
-    private val activityMain by lazy {
-        ActivityMainBinding.inflate(layoutInflater)
+    override fun onStart() {
+        super.onStart()
+        Log.i("MainActivity","onStart()")
+        viewModel.getPosts("최신순")
     }
 
-    private val activityPost by lazy {
-        ActivityPostBinding.inflate(layoutInflater)
+    override fun onResume() {
+        super.onResume()
+        Log.i("MainActivity", "onResume()")
     }
 
-    private val activityPostAdd by lazy {
-        ActivityPostAddBinding.inflate(layoutInflater)
+    override fun onPause() {
+        super.onPause()
+        Log.i("MainActivity", "onPause()")
     }
 
-    private val activityPostUpdate by lazy {
-        ActivityPostUpdateBinding.inflate(layoutInflater)
+    override fun onStop() {
+        super.onStop()
+        Log.i("MainActivity","onStop()")
     }
 
-    // 첫시작
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        changeViewHome()
-    }
-
-    // === 홈화면 페이지 === //
-    private fun changeViewHome() {
-        setContentView(activityMain.root)
-        getPosts("최신순")
+        Log.i("MainActivity","onCreate()")
+        setContentView(binding.root)
 
         // 게시글 등록 페이지 전환
-        activityMain.homeBtnPostAdd.setOnClickListener(this)
-
+        binding.homeBtnPostAdd.setOnClickListener(this)
         // 제목 검색 버튼
-        activityMain.homeBtnTitleSearch.setOnClickListener(this)
-
+        binding.homeBtnTitleSearch.setOnClickListener(this)
         // 정렬 검색 버튼
-        activityMain.homeBtnOrderBySearch.setOnClickListener(this)
-
+        binding.homeBtnOrderBySearch.setOnClickListener(this)
         // 서버 url 설정 버튼
-        activityMain.homeBtnAdmin.setOnClickListener (this)
-
+        binding.homeBtnAdmin.setOnClickListener(this)
         // 홈화면 정렬 선택지
-        activityMain.homeSpinner.adapter = ArrayAdapter.createFromResource(
+        binding.homeSpinner.adapter = ArrayAdapter.createFromResource(
             this,
             R.array.spinner_array,
             android.R.layout.simple_spinner_item
         )
+
+        // RecyclerView의 각 item들을 배치하고, item이 더이상 보이지 않을때 재사용할것인지 결정하는 역할을 한다.
+        val lm = LinearLayoutManager(this)
+        binding.homeMRecyclerView.layoutManager = lm
+        binding.homeMRecyclerView.setHasFixedSize(true)
+
+        // posts가 바뀔때마다 실행
+        viewModel.posts.observe(this) {
+            // 람다식 { (Dog) -> Unit } 부분을 추가하여 itemView의 setOnClickListener에서 어떤 액션을 취할지 설정해준다.
+            val mAdapter = MainRvAdapter(this, viewModel.posts.value?.body) { post ->
+                changeViewPostDetail(post.id)
+            }
+            binding.homeMRecyclerView.adapter = mAdapter
+        }
     }
 
     override fun onClick(v: View?) {
         when (v?.id) {
             R.id.home_btnPostAdd -> changeViewPostAdd()
             R.id.home_btnTitleSearch -> {
-                getTitlePosts(activityMain.homeTextInputTitle.text.toString())
-                Toast.makeText(this, "${activityMain.homeTextInputTitle.text} 조회", Toast.LENGTH_SHORT).show()
+                viewModel.getTitlePosts(binding.homeTextInputTitle.text.toString())
+                Toast.makeText(this, "${binding.homeTextInputTitle.text} 조회", Toast.LENGTH_SHORT)
+                    .show()
             }
             R.id.home_btnOrderBySearch -> {
-                getPosts(activityMain.homeSpinner.selectedItem.toString())
-                Toast.makeText(this, "${activityMain.homeSpinner.selectedItem} 정렬 전체 조회", Toast.LENGTH_SHORT).show()
+                viewModel.getPosts(binding.homeSpinner.selectedItem.toString())
+                Toast.makeText(
+                    this,
+                    "${binding.homeSpinner.selectedItem} 정렬 전체 조회",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
             R.id.home_btnAdmin -> {
                 val editText = EditText(this)
@@ -105,151 +99,25 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         }
     }
 
-    // === 게시글 등록 페이지 === //
-    private fun changeViewPostAdd() {
-        setContentView(activityPostAdd.root)
-
-        // 이전 화면 전환 (홈화면)
-        activityPostAdd.postAddBtnPrev.setOnClickListener {
-            changeViewHome()
-        }
-
-        // 게시글 등록
-        activityPostAdd.postAddBtnAddPost.setOnClickListener {
-            val title = activityPostAdd.postAddInputTitle.text.toString()
-            val content = activityPostAdd.postAddInputContent.text.toString()
-            val password = activityPostAdd.postAddInputPassword.text.toString()
-
-            if (validatePostAdd(title, content, password)) {
-                addPost(title, content, password)
-                Toast.makeText(this, "게시글 등록 완료", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, "제목, 내용, 비밀번호를 입력하지 않았습니다.", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
     // === 게시글 상세조회 페이지 === //
     private fun changeViewPostDetail(id: Long) {
-        setContentView(activityPost.root)
-
-        // 이전 화면 전환 (홈화면)
-        activityPost.postBtnPrev.setOnClickListener { changeViewHome() }
-
-        // 게시글 수정 요청
-        activityPost.postBtnUpdatePost.setOnClickListener { changeViewPostUpdate() }
-
-        // 게시글 삭제 요청
-        activityPost.postBtnDeletePost.setOnClickListener {
-            val editText = EditText(this)
-            editText.gravity = Gravity.CENTER
-            editText.hint = "비밀번호 입력"
-            modalDeletePostPw(editText, id)
+        val intent = Intent(this, PostActivity::class.java).apply {
+            putExtra("id", id)
         }
-
-        // 게시글 상세 조회 요청
-        getPost(id)
+        startActivity(intent)
     }
 
-    // 대화상자 열어서 비밀번호 입력
-    private fun modalDeletePostPw(editText: EditText, id: Long) {
-        AlertDialog.Builder(this)
-            .setTitle("비밀번호를 입력하세요")
-            .setMessage("게시글을 작성했을 당시의 비밀번호를 입력하세요.")
-            .setView(editText)
-            .setPositiveButton("입력") { _, _ -> deletePost(id, editText.text.toString()) }
-            .setNegativeButton("취소") { _, _ -> }
-            .show()
-    }
-
-    // 게시글 삭제 요청
-    private fun deletePost(id: Long, password: String) {
-        api.deletePost(id, password).enqueue(object : Callback<ResponseData<String>> {
-            override fun onResponse(call: Call<ResponseData<String>>, response: Response<ResponseData<String>>) {
-                if (response.code() == 200) {
-                    changeViewHome()
-                    Log.i("deletePost", "게시글 삭제 성공 : ${response.raw()}")
-                    Toast.makeText(this@MainActivity, "게시글 삭제 완료", Toast.LENGTH_SHORT)
-                        .show()
-                } else {
-                    Log.e("deletePost", "게시글 삭제 실패 : ${response.errorBody()?.string()!!}")
-                    Toast.makeText(this@MainActivity, "게시글 삭제 실패", Toast.LENGTH_SHORT)
-                        .show()
-                }
-            }
-
-            override fun onFailure(call: Call<ResponseData<String>>, t: Throwable) {
-                Log.e("RESPONSE", "게시글 삭제 실패 : $t")
-            }
-        })
-    }
-
-    // === 게시글 수정 페이지 === //
-    private fun changeViewPostUpdate() {
-        setContentView(activityPostUpdate.root)
-
-        // 게시글 상세 조회한 값 가져와서 수정 페이지에 사용
-        var postBody = post.value?.body
-        var title = postBody?.title.toString()
-        var content = postBody?.content.toString()
-        var password: String
-
-        // 수정할 게시글 값들 넣어놓기
-        activityPostUpdate.postUpdateInputTitle.setText(title)
-        activityPostUpdate.postUpdateInputContent.setText(content)
-
-        // 이전 화면 전환 (게시글 상세 조회)
-        activityPostUpdate.postUpdateBtnPrev.setOnClickListener {
-            changeViewPostDetail(0L)
-        }
-
-        // 게시글 수정 요청
-        activityPostUpdate.postUpdateBtnUpdatePost.setOnClickListener {
-            title = activityPostUpdate.postUpdateInputTitle.text.toString()
-            content = activityPostUpdate.postUpdateInputContent.text.toString()
-            password = activityPostUpdate.postUpdateInputPassword.text.toString()
-            postBody?.let { updatePost(postBody.id, title, content, password) }
-        }
-    }
-
-    // 게시글 수정 요청
-    private fun updatePost(id: Long, title: String, content: String, password: String) {
-        val postForm = PostForm(title, content, password)
-
-        api.updatePost(id, postForm).enqueue(object : Callback<ResponseData<String>> {
-            override fun onResponse(
-                call: Call<ResponseData<String>>,
-                response: Response<ResponseData<String>>
-            ) {
-                if (response.code() == 200) {
-                    changeViewHome()
-                    Log.i("updatePost", "게시글 수정 성공 : ${response.raw()}")
-                    Toast.makeText(this@MainActivity, "게시글 수정 완료", Toast.LENGTH_SHORT).show()
-                } else {
-                    var errorMessage = response.errorBody()?.string()!!.substring(56, 67)
-                    Toast.makeText(this@MainActivity, errorMessage, Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun onFailure(call: Call<ResponseData<String>>, t: Throwable) {
-                Log.e("RESPONSE", "게시글 수정 실패 : $t")
-            }
-        })
-    }
-
-    // 공백 또는 화이트스페이스에 해당하는지 검증
-    private fun validatePostAdd(title: String, content: String, password: String): Boolean {
-        return when {
-            title.isBlank() || content.isBlank() || password.isBlank() -> false
-            else -> true
-        }
+    // === 게시글 등록 페이지 === //
+    private fun changeViewPostAdd() {
+        val intent = Intent(this, PostAddActivity::class.java)
+        startActivity(intent)
     }
 
     // 대화상자를 열어서 서버 URL 변경
     private fun modalUpdateServerUrl(editText: EditText) {
         AlertDialog.Builder(this)
             .setTitle("서버 API 주소를 입력하세요")
-            .setMessage("기본값 : http://10.0.2.2:8080\n현재값 : $url")
+            .setMessage("기본값 : http://10.0.2.2:8080\n현재값 : ${JsServer.url}")
             .setView(editText)
             .setPositiveButton("설정") { _, _ ->
                 validateServerUrl(editText)
@@ -262,131 +130,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     // 사용자가 작성한 서버 URL 검증
     private fun validateServerUrl(editText: EditText) {
         if (editText.text.length > 3 && editText.text.substring(0..3) == "http") {
-            Log.i("INFO", "올바른 서버 URL 입니다.")
-            url = editText.text.toString()
-            renewServerUrl()
+            JsServer.url = editText.text.toString()
+            JsServer.renewServerUrl()
             Toast.makeText(this, "서버 URL이 변경되었습니다.", Toast.LENGTH_SHORT).show()
         } else {
-            Log.w("WARNING", "올바르지 않은 서버 URL 입니다.")
             Toast.makeText(this, "올바르지 않은 서버 URL입니다.\n다시 입력해주세요.", Toast.LENGTH_SHORT).show()
         }
     }
-
-    // 서버 URL 변경
-    private fun renewServerUrl() {
-        retrofit = Retrofit.Builder()
-            .baseUrl(url)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-        api = retrofit.create(PostAPI::class.java)
-    }
-
-    // 게시글 제목 검색
-    private fun getTitlePosts(title: String) {
-        api.getTitlePost(title).enqueue(object : Callback<ResponseData<ArrayList<PostsBody>>> {
-            override fun onResponse(
-                call: Call<ResponseData<ArrayList<PostsBody>>>,
-                response: Response<ResponseData<ArrayList<PostsBody>>>
-            ) {
-                posts.value = response.body()
-                Log.i("RESPONSE", "게시글 제목 검색 성공 : ${response.raw()}")
-                showPosts()
-            }
-
-            override fun onFailure(call: Call<ResponseData<ArrayList<PostsBody>>>, t: Throwable) {
-                Log.e("RESPONSE", "게시글 제목 검색 실패 : $t")
-            }
-        })
-    }
-
-    // 게시글 상세 조회
-    private fun getPost(id: Long) {
-        if (id != 0L) {
-            api.getPost(id).enqueue(object : Callback<ResponseData<PostBody>> {
-                override fun onResponse(
-                    call: Call<ResponseData<PostBody>>,
-                    response: Response<ResponseData<PostBody>>
-                ) {
-                    post.value = response.body()
-                    showPost()
-                    Log.i("RESPONSE", "게시글 상세 조회 성공 : ${response.raw()}")
-                }
-
-                override fun onFailure(call: Call<ResponseData<PostBody>>, t: Throwable) {
-                    Log.e("RESPONSE", "게시글 상세 조회 실패 : $t")
-                }
-
-            })
-        } else {
-            showPost()
-        }
-    }
-
-    // 게시글 상세 조회 페이지 갱신
-    private fun showPost() {
-        var postBody = post.value?.body
-        activityPost.postTvTitle.text = postBody?.title
-        activityPost.postTvContent.text = postBody?.content
-        activityPost.postTvViewCount.text = postBody?.viewCount.toString()
-        activityPost.postTvCreatedDate.text = postBody?.createDate
-        activityPost.postTvUpdatedDate.text = postBody?.updateDate
-    }
-
-    // 게시글 전체 조회 (정렬순)
-    private fun getPosts(orderBy: String) {
-        val queryString: String = when (orderBy) {
-            "최신순" -> "createdDateTime,desc"
-            else -> "viewCount,desc"
-        }
-
-        api.getPosts(queryString).enqueue(object : Callback<ResponseData<ArrayList<PostsBody>>> {
-            override fun onResponse(
-                call: Call<ResponseData<ArrayList<PostsBody>>>,
-                response: Response<ResponseData<ArrayList<PostsBody>>>
-            ) {
-                posts.value = response.body()
-                Log.i("RESPONSE", "게시글 전체 조회 성공 : ${response.raw()}")
-                showPosts()
-            }
-
-            override fun onFailure(call: Call<ResponseData<ArrayList<PostsBody>>>, t: Throwable) {
-                Log.e("RESPONSE", "게시글 전체 조회 실패 : $t")
-            }
-        })
-    }
-
-    // 홈화면 게시글 리스트 갱신
-    private fun showPosts() {
-        // 람다식 { (Dog) -> Unit } 부분을 추가하여 itemView의 setOnClickListener에서 어떤 액션을 취할지 설정해준다.
-        val mAdapter = MainRvAdapter(this, posts.value?.body) { post ->
-            changeViewPostDetail(post.id)
-        }
-
-        activityMain.homeMRecyclerView.adapter = mAdapter
-
-        // RecyclerView의 각 item들을 배치하고, item이 더이상 보이지 않을때 재사용할것인지 결정하는 역할을 한다.
-        val lm = LinearLayoutManager(this)
-        activityMain.homeMRecyclerView.layoutManager = lm
-        activityMain.homeMRecyclerView.setHasFixedSize(true)
-    }
-
-    // 게시글 등록
-    private fun addPost(title: String, content: String, password: String) {
-        val postForm: PostForm = PostForm(title, content, password)
-        api.addPost(postForm).enqueue(object : Callback<ResponseData<String>> {
-            override fun onResponse(
-                call: Call<ResponseData<String>>,
-                response: Response<ResponseData<String>>
-            ) {
-                if (response.code() == 200) changeViewHome()
-                Log.i("RESPONSE", "게시글 등록 성공 : ${response.raw()}")
-            }
-
-            override fun onFailure(call: Call<ResponseData<String>>, t: Throwable) {
-                Log.e("RESPONSE", "게시글 등록 실패 : $t")
-            }
-        })
-    }
-
-
 }

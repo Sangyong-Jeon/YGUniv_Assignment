@@ -3,7 +3,7 @@ package kr.tutorials.yguniv_anonymous_post.rest
 import retrofit2.Call
 import retrofit2.http.*
 
-interface PostAPI {
+interface PostApi {
 
     // 전체조회 (정렬순)
     @GET("/api/posts")
