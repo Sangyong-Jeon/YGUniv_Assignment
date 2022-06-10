@@ -75,8 +75,8 @@ public class PostService {
 
     // 게시글 검색
     @Transactional(readOnly = true)
-    public ResponseData<List<PostResponse>> searchPosts(String title) {
-        List<Post> posts = postRepository.searchByTitle(title);
+    public ResponseData<List<PostResponse>> searchPosts(Sort sort, String title) {
+        List<Post> posts = postRepository.searchByTitle(sort, title);
         // Dto 변환
         List<PostResponse> postDtos = posts.stream().map(PostResponse::new).collect(Collectors.toList());
         Header header = new Header(200, "OK", "게시글 검색 완료");

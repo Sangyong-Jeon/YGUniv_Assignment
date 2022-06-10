@@ -65,8 +65,8 @@ public class PostApiController {
     - 사용자가 입력한 키워드를 제목에 포함한 게시글 리스트 조회 가능
      */
     @GetMapping("/posts/search")
-    public ResponseEntity<ResponseData<List<PostResponse>>> searchPosts(@RequestParam("search") String title) {
-        ResponseData<List<PostResponse>> responseData = postService.searchPosts(title);
+    public ResponseEntity<ResponseData<List<PostResponse>>> searchPosts(Sort sort, @RequestParam("search") String title) {
+        ResponseData<List<PostResponse>> responseData = postService.searchPosts(sort, title);
         log.info("게시글 검색 완료");
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
