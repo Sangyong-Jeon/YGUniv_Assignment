@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         initRecyclerView()
         binding.homeBtnPostAdd.setOnClickListener(this)// 게시글 등록 페이지 전환
         binding.homeBtnTitleSearch.setOnClickListener(this)// 제목 검색 버튼
-        binding.homeBtnOrderBySearch.setOnClickListener(this)// 정렬 검색 버튼
+        binding.homeBtnAllSearch.setOnClickListener(this)// 정렬 검색 버튼
         binding.homeBtnAdmin.setOnClickListener(this)// 서버 url 설정 버튼
         binding.homeSpinner.adapter = ArrayAdapter.createFromResource(// 홈화면 정렬 선택지
             this,
@@ -62,17 +62,16 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         when (v?.id) {
             R.id.home_btnPostAdd -> changeViewPostAdd()
             R.id.home_btnTitleSearch -> {
-                viewModel.getTitlePosts(binding.homeTextInputTitle.text.toString())
+                val orderBy = binding.homeSpinner.selectedItem.toString()
+                val title = binding.homeTextInputTitle.text.toString()
+                viewModel.getTitlePosts(orderBy, title)
                 Toast.makeText(this, "${binding.homeTextInputTitle.text} 조회", Toast.LENGTH_SHORT)
                     .show()
             }
-            R.id.home_btnOrderBySearch -> {
-                viewModel.getPosts(binding.homeSpinner.selectedItem.toString())
-                Toast.makeText(
-                    this,
-                    "${binding.homeSpinner.selectedItem} 정렬 전체 조회",
-                    Toast.LENGTH_SHORT
-                ).show()
+            R.id.home_btnAllSearch -> {
+                val orderBy = binding.homeSpinner.selectedItem.toString()
+                viewModel.getPosts(orderBy)
+                Toast.makeText(this, "$orderBy 정렬 전체 조회", Toast.LENGTH_SHORT).show()
             }
             R.id.home_btnAdmin -> {
                 val editText = EditText(this)
@@ -103,12 +102,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             .setTitle("서버 API 주소를 입력하세요")
             .setMessage("기본값 : http://10.0.2.2:8080\n현재값 : ${SpringServer.url}")
             .setView(editText)
-            .setPositiveButton("설정") { _, _ ->
-                validateServerUrl(editText)
-            }
-            .setNegativeButton("취소") { _, _ ->
-                Toast.makeText(this, "서버 URL 변경 취소", Toast.LENGTH_SHORT).show()
-            }.show()
+            .setPositiveButton("설정") { _, _ -> validateServerUrl(editText) }
+            .setNegativeButton("취소") { _, _ -> }
+            .show()
     }
 
     // 사용자가 작성한 서버 URL 검증 후 변경

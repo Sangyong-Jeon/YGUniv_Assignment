@@ -19,7 +19,10 @@ interface PostApi {
 
     // 게시글 검색
     @GET("/api/posts/search")
-    fun getTitlePost(@Query("search") search: String): Call<ResponseData<ArrayList<PostsBody>>>
+    fun getTitlePost(
+        @Query("sort") sort: String,
+        @Query("search") search: String
+    ): Call<ResponseData<ArrayList<PostsBody>>>
 
     // 게시글 등록
     @POST("/api/posts")

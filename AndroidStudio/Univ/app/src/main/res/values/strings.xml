@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">익명 게시판</string>
-    <string name="btn_search">검색</string>
-    <string name="btn_orderby_search">정렬검색</string>
+    <string name="home_btn_title_search">제목 검색</string>
+    <string name="home_btn_all_search">전체 검색</string>
 </resources>

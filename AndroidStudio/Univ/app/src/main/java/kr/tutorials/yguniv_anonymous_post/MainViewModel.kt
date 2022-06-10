@@ -66,6 +66,29 @@ class MainViewModel : ViewModel() {
         })
     }
 
+    // 게시글 제목 검색
+    fun getTitlePosts(orderBy: String, title: String) = viewModelScope.launch {
+        val queryString: String = when (orderBy) {
+            "최신순" -> "createdDateTime,desc"
+            else -> "viewCount,desc"
+        }
+        val request = SpringServer.postApi.getTitlePost(queryString, title)
+        request.enqueue(object : Callback<ResponseData<ArrayList<PostsBody>>> {
+            override fun onResponse(
+                call: Call<ResponseData<ArrayList<PostsBody>>>,
+                response: Response<ResponseData<ArrayList<PostsBody>>>
+            ) {
+                posts.value = response.body()
+                Log.i("RESPONSE", "게시글 제목 검색 성공 : ${response.raw()}")
+            }
+
+            override fun onFailure(call: Call<ResponseData<ArrayList<PostsBody>>>, t: Throwable) {
+                error.value = t.localizedMessage
+                Log.e("RESPONSE", "게시글 제목 검색 실패 : $t")
+            }
+        })
+    }
+
     // 게시글 등록
     fun addPost(title: String, content: String, password: String) = viewModelScope.launch {
         val postForm = PostForm(title, content, password)
@@ -140,25 +163,6 @@ class MainViewModel : ViewModel() {
                 }
             })
         }
-
-    // 게시글 제목 검색
-    fun getTitlePosts(title: String) = viewModelScope.launch {
-        val request = SpringServer.postApi.getTitlePost(title)
-        request.enqueue(object : Callback<ResponseData<ArrayList<PostsBody>>> {
-            override fun onResponse(
-                call: Call<ResponseData<ArrayList<PostsBody>>>,
-                response: Response<ResponseData<ArrayList<PostsBody>>>
-            ) {
-                posts.value = response.body()
-                Log.i("RESPONSE", "게시글 제목 검색 성공 : ${response.raw()}")
-            }
-
-            override fun onFailure(call: Call<ResponseData<ArrayList<PostsBody>>>, t: Throwable) {
-                error.value = t.localizedMessage
-                Log.e("RESPONSE", "게시글 제목 검색 실패 : $t")
-            }
-        })
-    }
 
     override fun onCleared() {
         super.onCleared()
